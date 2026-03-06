@@ -12,6 +12,7 @@ class Attendance(db.Model):
     __table_args__ = (UniqueConstraint("advocate_id", "day", name="uq_attendance_day"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), nullable=False)
     advocate_id: Mapped[int] = mapped_column(Integer, ForeignKey("advocates.id"), nullable=False)
     day: Mapped[date] = mapped_column(Date, nullable=False)
     check_in_time: Mapped[time | None] = mapped_column(Time)
@@ -24,6 +25,7 @@ class Attendance(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "companyId": self.company_id,
             "advocateId": self.advocate_id,
             "advocateName": self.advocate.name if self.advocate else None,
             "date": self.day.isoformat(),

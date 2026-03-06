@@ -16,6 +16,8 @@ import AttendancePage from './pages/AttendancePage';
 import LeaveRequestsPage from './pages/LeaveRequestsPage';
 import ReportsPage from './pages/ReportsPage';
 import ProfilePage from './pages/ProfilePage';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import { getRole } from './auth';
 
 export default function App() {
   return (
@@ -32,7 +34,10 @@ export default function App() {
             <ProtectedRoute>
               <AppLayout>
                 <Routes>
-                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={getRole() === 'super_admin' ? <Navigate to="/superadmin" replace /> : <DashboardPage />}
+                  />
                   <Route path="/cases" element={<CasesPage />} />
                   <Route path="/cases/:caseId" element={<CaseDetailsPage />} />
                   <Route path="/clients" element={<ClientsPage />} />
@@ -41,6 +46,14 @@ export default function App() {
                   <Route path="/leave" element={<LeaveRequestsPage />} />
                   <Route path="/reports" element={<ReportsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route
+                    path="/superadmin"
+                    element={
+                      <ProtectedRoute allowedRoles={['super_admin']}>
+                        <SuperAdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </AppLayout>

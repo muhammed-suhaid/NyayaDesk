@@ -7,27 +7,26 @@ import {
   CardContent,
   Container,
   Divider,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-import { registerUser } from '../auth';
+import { registerAdminCompany } from '../auth';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
+    companyName: '',
+    companyEmail: '',
+    companyPhone: '',
+    companyAddress: '',
     name: '',
     email: '',
     phone: '',
-    role: 'Advocate',
     password: '',
     confirmPassword: '',
   });
@@ -39,8 +38,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
+    if (!form.companyName.trim()) {
+      setError('Company name is required');
+      return;
+    }
+
     if (!form.name.trim() || !form.email.trim()) {
-      setError('Name and email are required');
+      setError('Admin name and email are required');
       return;
     }
 
@@ -54,20 +58,25 @@ export default function RegisterPage() {
       return;
     }
 
-    const res = registerUser({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      role: form.role,
-      password: form.password,
-    });
+    (async () => {
+      const res = await registerAdminCompany({
+        companyName: form.companyName,
+        companyEmail: form.companyEmail,
+        companyPhone: form.companyPhone,
+        companyAddress: form.companyAddress,
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
 
-    if (!res.ok) {
-      setError(res.error || 'Unable to create account');
-      return;
-    }
+      if (!res.ok) {
+        setError(res.error || 'Unable to create account');
+        return;
+      }
 
-    navigate('/login', { replace: true });
+      navigate('/login', { replace: true });
+    })();
   };
 
   return (
@@ -88,7 +97,80 @@ export default function RegisterPage() {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <TextField
-                      label="Name"
+                      label="Company Name"
+                      value={form.companyName}
+                      onChange={onChange('companyName')}
+                      fullWidth
+                      required
+                      InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: '#ffffff',
+                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
+                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
+                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Company Email"
+                      value={form.companyEmail}
+                      onChange={onChange('companyEmail')}
+                      type="email"
+                      fullWidth
+                      InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: '#ffffff',
+                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
+                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
+                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Company Phone"
+                      value={form.companyPhone}
+                      onChange={onChange('companyPhone')}
+                      fullWidth
+                      InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: '#ffffff',
+                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
+                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
+                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Company Address"
+                      value={form.companyAddress}
+                      onChange={onChange('companyAddress')}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: '#ffffff',
+                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
+                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
+                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Admin Name"
                       value={form.name}
                       onChange={onChange('name')}
                       fullWidth
@@ -106,7 +188,7 @@ export default function RegisterPage() {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Email"
+                      label="Admin Email"
                       value={form.email}
                       onChange={onChange('email')}
                       type="email"
@@ -125,7 +207,7 @@ export default function RegisterPage() {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Phone"
+                      label="Admin Phone"
                       value={form.phone}
                       onChange={onChange('phone')}
                       fullWidth
@@ -139,26 +221,6 @@ export default function RegisterPage() {
                         },
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel sx={{ color: 'rgba(255,255,255,0.8)' }}>Role</InputLabel>
-                      <Select
-                        label="Role"
-                        value={form.role}
-                        onChange={onChange('role')}
-                        sx={{
-                          color: '#ffffff',
-                          '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#c9a227' },
-                          '& .MuiSvgIcon-root': { color: 'rgba(255,255,255,0.8)' },
-                        }}
-                      >
-                        <MenuItem value="Admin">Admin</MenuItem>
-                        <MenuItem value="Advocate">Advocate</MenuItem>
-                      </Select>
-                    </FormControl>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField

@@ -10,6 +10,7 @@ class Document(db.Model):
     __tablename__ = "documents"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), nullable=False)
     case_id: Mapped[int] = mapped_column(Integer, ForeignKey("cases.id"), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     stored_filename: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -22,6 +23,7 @@ class Document(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "companyId": self.company_id,
             "caseId": self.case_id,
             "originalFilename": self.original_filename,
             "storedFilename": self.stored_filename,

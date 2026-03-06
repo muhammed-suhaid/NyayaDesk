@@ -10,6 +10,7 @@ class Case(db.Model):
     __tablename__ = "cases"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(250), nullable=False)
     case_number: Mapped[str | None] = mapped_column(String(100))
     case_type: Mapped[str | None] = mapped_column(String(100))
@@ -34,6 +35,7 @@ class Case(db.Model):
     def to_dict(self, include_clients: bool = False, include_advocate: bool = False):
         data = {
             "id": self.id,
+            "companyId": self.company_id,
             "title": self.title,
             "caseNumber": self.case_number,
             "caseType": self.case_type,

@@ -1,8 +1,45 @@
 import axios from 'axios';
 
+import { getToken, logout } from '../auth';
+
 const http = axios.create({
   baseURL: '/api',
 });
+
+http.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+http.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401) {
+      logout();
+    }
+    return Promise.reject(err);
+  }
+);
+
+export const AuthApi = {
+  login: (payload) => http.post('/auth/login', payload),
+  registerAdmin: (payload) => http.post('/auth/register-admin', payload),
+  logout: () => http.post('/auth/logout'),
+};
+
+export const AdminApi = {
+  createUser: (payload) => http.post('/admin/users', payload),
+};
+
+export const SuperAdminApi = {
+  companies: () => http.get('/superadmin/companies'),
+  company: (id) => http.get(`/superadmin/companies/${id}`),
+  setCompanyStatus: (id, status) => http.put(`/superadmin/companies/${id}/status`, { status }),
+};
 
 export const CasesApi = {
   list: (params) => http.get('/cases', { params }),
@@ -31,7 +68,7 @@ export const ClientsApi = {
 
 export const AdvocatesApi = {
   list: (params) => http.get('/advocates', { params }),
-  create: (payload) => http.post('/advocates', payload),
+  create: (payload) => http.post('/admin/users', payload),
   update: (id, payload) => http.put(`/advocates/${id}`, payload),
   remove: (id) => http.delete(`/advocates/${id}`),
 };

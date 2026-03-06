@@ -10,6 +10,7 @@ class LeaveRequest(db.Model):
     __tablename__ = "leave_requests"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), nullable=False)
     advocate_id: Mapped[int] = mapped_column(Integer, ForeignKey("advocates.id"), nullable=False)
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
@@ -22,6 +23,7 @@ class LeaveRequest(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "companyId": self.company_id,
             "advocateId": self.advocate_id,
             "advocateName": self.advocate.name if self.advocate else None,
             "startDate": self.start_date.isoformat(),

@@ -7,6 +7,8 @@ from flask_cors import CORS
 
 from src.db import db
 from src.routes.advocates import advocates_bp
+from src.routes.admin import admin_bp
+from src.routes.auth import auth_bp
 from src.routes.attendance import attendance_bp
 from src.routes.cases import cases_bp
 from src.routes.clients import clients_bp
@@ -14,6 +16,8 @@ from src.routes.documents import documents_bp
 from src.routes.leave_requests import leave_bp
 from src.routes.notifications import notifications_bp
 from src.routes.reports import reports_bp
+from src.routes.superadmin import superadmin_bp
+from src.services.seed_service import seed_if_empty
 from src.utils.settings import AppSettings
 
 
@@ -34,14 +38,20 @@ def create_app() -> Flask:
         from src import models  # noqa: F401
 
         db.create_all()
+        seed_if_empty()
 
     app.register_blueprint(cases_bp, url_prefix="/api/cases")
     app.register_blueprint(clients_bp, url_prefix="/api/clients")
     app.register_blueprint(advocates_bp, url_prefix="/api/advocates")
     app.register_blueprint(attendance_bp, url_prefix="/api/attendance")
     app.register_blueprint(leave_bp, url_prefix="/api/leave")
+    app.register_blueprint(documents_bp, url_prefix="/api/cases")
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
     app.register_blueprint(reports_bp, url_prefix="/api/reports")
+
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(superadmin_bp, url_prefix="/api/superadmin")
 
     @app.get("/")
     def index():

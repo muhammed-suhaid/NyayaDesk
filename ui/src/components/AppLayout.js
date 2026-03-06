@@ -28,18 +28,19 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
 import { NotificationsApi } from '../services/api';
-import { logout } from '../auth';
+import { getRole, logout } from '../auth';
 
 const drawerWidth = 240;
 
 const navItems = [
-  { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
-  { label: 'Cases', path: '/cases', icon: <GavelIcon /> },
-  { label: 'Clients', path: '/clients', icon: <PeopleIcon /> },
-  { label: 'Advocates', path: '/advocates', icon: <AccountBoxIcon /> },
-  { label: 'Attendance', path: '/attendance', icon: <EventAvailableIcon /> },
-  { label: 'Leave Requests', path: '/leave', icon: <AssignmentTurnedInIcon /> },
-  { label: 'Reports', path: '/reports', icon: <AssessmentIcon /> },
+  { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Cases', path: '/cases', icon: <GavelIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Clients', path: '/clients', icon: <PeopleIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Advocates', path: '/advocates', icon: <AccountBoxIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Attendance', path: '/attendance', icon: <EventAvailableIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Leave Requests', path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Reports', path: '/reports', icon: <AssessmentIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Super Admin', path: '/superadmin', icon: <AssessmentIcon />, roles: ['super_admin'] },
 ];
 
 export default function AppLayout({ children }) {
@@ -55,6 +56,12 @@ export default function AppLayout({ children }) {
     const item = navItems.find((x) => location.pathname.startsWith(x.path));
     return item ? item.path : '';
   }, [location.pathname]);
+
+  const role = useMemo(() => getRole(), []);
+
+  const visibleNavItems = useMemo(() => {
+    return navItems.filter((i) => !i.roles || i.roles.includes(role));
+  }, [role]);
 
   const fetchUnread = async () => {
     try {
@@ -75,7 +82,7 @@ export default function AppLayout({ children }) {
     <Box sx={{ px: 0, py: 1 }}>
       <Toolbar />
       <List>
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <ListItemButton
             key={item.path}
             selected={activePath === item.path}

@@ -5,6 +5,7 @@ from src.models.case import Case
 from src.models.document import Document
 from src.models.notification import Notification
 from src.services.documents_service import delete_document_file, get_document_path, store_case_document
+from src.utils.auth import current_session, require_auth
 from src.utils.http import error_response
 
 
@@ -12,8 +13,14 @@ documents_bp = Blueprint("documents", __name__)
 
 
 @documents_bp.post("/<int:case_id>/upload")
+@require_auth
 def upload_case_document(case_id: int):
-    case = Case.query.get(case_id)
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin cannot upload documents", 403)
+
+    case = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
     if not case:
         return error_response("Case not found", 404)
 
@@ -28,6 +35,7 @@ def upload_case_document(case_id: int):
         return error_response(str(e))
 
     doc = Document(
+        company_id=sess.company_id,
         case_id=case_id,
         original_filename=file.filename,
         stored_filename=stored_filename,
@@ -38,6 +46,7 @@ def upload_case_document(case_id: int):
     db.session.add(doc)
     db.session.add(
         Notification(
+            company_id=sess.company_id,
             title="Document uploaded",
             message=f"Uploaded '{file.filename}' for case '{case.title}'.",
             category="document",
@@ -49,18 +58,34 @@ def upload_case_document(case_id: int):
 
 
 @documents_bp.get("/<int:case_id>/documents")
+@require_auth
 def list_case_documents(case_id: int):
-    case = Case.query.get(case_id)
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin must use /superadmin endpoints", 403)
+
+    case = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
     if not case:
         return error_response("Case not found", 404)
 
-    docs = Document.query.filter_by(case_id=case_id).order_by(Document.created_at.desc()).all()
+    docs = (
+        Document.query.filter_by(case_id=case_id, company_id=sess.company_id)
+        .order_by(Document.created_at.desc())
+        .all()
+    )
     return [d.to_dict() for d in docs]
 
 
 @documents_bp.get("/<int:case_id>/documents/<int:doc_id>/download")
+@require_auth
 def download_case_document(case_id: int, doc_id: int):
-    doc = Document.query.filter_by(id=doc_id, case_id=case_id).first()
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin must use /superadmin endpoints", 403)
+
+    doc = Document.query.filter_by(id=doc_id, case_id=case_id, company_id=sess.company_id).first()
     if not doc:
         return error_response("Document not found", 404)
 
@@ -72,8 +97,14 @@ def download_case_document(case_id: int, doc_id: int):
 
 
 @documents_bp.delete("/<int:case_id>/documents/<int:doc_id>")
+@require_auth
 def delete_case_document(case_id: int, doc_id: int):
-    doc = Document.query.filter_by(id=doc_id, case_id=case_id).first()
+    sess = current_session()
+    assert sess is not None
+    if sess.role != "admin":
+        return error_response("Only admin can delete documents", 403)
+
+    doc = Document.query.filter_by(id=doc_id, case_id=case_id, company_id=sess.company_id).first()
     if not doc:
         return error_response("Document not found", 404)
 
@@ -82,6 +113,7 @@ def delete_case_document(case_id: int, doc_id: int):
     db.session.delete(doc)
     db.session.add(
         Notification(
+            company_id=sess.company_id,
             title="Document deleted",
             message=f"Deleted '{doc.original_filename}' from case #{case_id}.",
             category="document",

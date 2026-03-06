@@ -28,11 +28,11 @@ export default function LoginPage() {
     return from && from !== '/login' ? from : '/dashboard';
   }, [location.state]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const res = login(email, password);
+    const res = await login(email, password);
     if (!res.ok) {
       setError(res.error || 'Unable to sign in');
       return;
@@ -62,7 +62,7 @@ export default function LoginPage() {
                 <Stack spacing={2}>
                   <TextField
                     label="Email"
-                    // value={email}
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     type="email"
                     fullWidth
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   />
                   <TextField
                     label="Password"
-                    // value={password}
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     type="password"
                     fullWidth
@@ -114,6 +114,29 @@ export default function LoginPage() {
                 </Typography>
                 <Button component={RouterLink} to="/register" sx={{ color: '#c9a227' }}>
                   Create Account
+                </Button>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setEmail(DEMO_CREDENTIALS.admin.email);
+                    setPassword(DEMO_CREDENTIALS.admin.password);
+                  }}
+                  sx={{ borderColor: 'rgba(255,255,255,0.25)', color: '#ffffff' }}
+                >
+                  Use Sample Admin
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setEmail(DEMO_CREDENTIALS.superAdmin.email);
+                    setPassword(DEMO_CREDENTIALS.superAdmin.password);
+                  }}
+                  sx={{ borderColor: 'rgba(255,255,255,0.25)', color: '#ffffff' }}
+                >
+                  Use Super Admin
                 </Button>
               </Stack>
             </Stack>

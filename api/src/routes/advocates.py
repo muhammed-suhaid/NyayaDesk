@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from src.db import db
 from src.models.advocate import Advocate
 from src.models.case import Case
+from src.utils.auth import current_session, require_role, require_auth
 from src.utils.http import error_response
 
 
@@ -10,28 +11,20 @@ advocates_bp = Blueprint("advocates", __name__)
 
 
 @advocates_bp.post("")
+@require_role("admin")
 def create_advocate():
-    payload = request.get_json(silent=True) or {}
-    name = (payload.get("name") or "").strip()
-    if not name:
-        return error_response("Advocate name is required")
-
-    a = Advocate(
-        name=name,
-        phone=payload.get("phone"),
-        email=payload.get("email"),
-        bar_council_number=payload.get("barCouncilNumber"),
-        role=payload.get("role") or "Advocate",
-        status=payload.get("status") or "Active",
-    )
-    db.session.add(a)
-    db.session.commit()
-    return a.to_dict(), 201
+    return error_response("Use /admin/users to create advocates", 400)
 
 
 @advocates_bp.get("")
+@require_auth
 def list_advocates():
-    advocates = Advocate.query.order_by(Advocate.created_at.desc()).all()
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin must use /superadmin endpoints", 403)
+
+    advocates = Advocate.query.filter(Advocate.company_id == sess.company_id).order_by(Advocate.created_at.desc()).all()
 
     include_workload = request.args.get("includeWorkload") == "1"
     if not include_workload:
@@ -40,7 +33,8 @@ def list_advocates():
     result = []
     for a in advocates:
         open_cases = (
-            Case.query.filter(Case.assigned_advocate_id == a.id)
+            Case.query.filter(Case.company_id == sess.company_id)
+            .filter(Case.assigned_advocate_id == a.id)
             .filter(Case.current_status != "Closed")
             .count()
         )
@@ -52,8 +46,14 @@ def list_advocates():
 
 
 @advocates_bp.put("/<int:advocate_id>")
+@require_auth
 def update_advocate(advocate_id: int):
-    a = Advocate.query.get(advocate_id)
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin cannot update advocates", 403)
+
+    a = Advocate.query.filter_by(id=advocate_id, company_id=sess.company_id).first()
     if not a:
         return error_response("Advocate not found", 404)
 
@@ -80,8 +80,14 @@ def update_advocate(advocate_id: int):
 
 
 @advocates_bp.delete("/<int:advocate_id>")
+@require_auth
 def delete_advocate(advocate_id: int):
-    a = Advocate.query.get(advocate_id)
+    sess = current_session()
+    assert sess is not None
+    if sess.role != "admin":
+        return error_response("Only admin can delete advocates", 403)
+
+    a = Advocate.query.filter_by(id=advocate_id, company_id=sess.company_id).first()
     if not a:
         return error_response("Advocate not found", 404)
 

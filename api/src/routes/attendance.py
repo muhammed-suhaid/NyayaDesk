@@ -5,6 +5,7 @@ from flask import Blueprint, request
 from src.db import db
 from src.models.advocate import Advocate
 from src.models.attendance import Attendance
+from src.utils.auth import current_session, require_auth
 from src.utils.http import error_response
 
 
@@ -12,14 +13,20 @@ attendance_bp = Blueprint("attendance", __name__)
 
 
 @attendance_bp.post("")
+@require_auth
 def mark_attendance():
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin cannot mark attendance", 403)
+
     payload = request.get_json(silent=True) or {}
 
     advocate_id = payload.get("advocateId")
     if not advocate_id:
         return error_response("advocateId is required")
 
-    advocate = Advocate.query.get(advocate_id)
+    advocate = Advocate.query.filter_by(id=advocate_id, company_id=sess.company_id).first()
     if not advocate:
         return error_response("Advocate not found", 404)
 
@@ -32,9 +39,9 @@ def mark_attendance():
     except ValueError:
         return error_response("Invalid date format")
 
-    record = Attendance.query.filter_by(advocate_id=advocate.id, day=day).first()
+    record = Attendance.query.filter_by(company_id=sess.company_id, advocate_id=advocate.id, day=day).first()
     if not record:
-        record = Attendance(advocate_id=advocate.id, day=day)
+        record = Attendance(company_id=sess.company_id, advocate_id=advocate.id, day=day)
         db.session.add(record)
 
     if "checkInTime" in payload:
@@ -53,9 +60,15 @@ def mark_attendance():
 
 
 @attendance_bp.get("")
+@require_auth
 def list_attendance():
+    sess = current_session()
+    assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin must use /superadmin endpoints", 403)
+
     advocate_id = request.args.get("advocateId")
-    q = Attendance.query
+    q = Attendance.query.filter(Attendance.company_id == sess.company_id)
     if advocate_id:
         q = q.filter(Attendance.advocate_id == int(advocate_id))
 

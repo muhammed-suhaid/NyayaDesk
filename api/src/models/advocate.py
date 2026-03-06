@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Integer, String
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db import db
@@ -10,6 +10,7 @@ class Advocate(db.Model):
     __tablename__ = "advocates"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(Integer, ForeignKey("companies.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     phone: Mapped[str | None] = mapped_column(String(30))
     email: Mapped[str | None] = mapped_column(String(200))
@@ -25,6 +26,7 @@ class Advocate(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "companyId": self.company_id,
             "name": self.name,
             "phone": self.phone,
             "email": self.email,
