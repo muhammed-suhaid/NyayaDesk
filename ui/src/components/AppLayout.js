@@ -5,6 +5,8 @@ import {
   Box,
   Drawer,
   IconButton,
+  Menu,
+  MenuItem,
   List,
   ListItemButton,
   ListItemIcon,
@@ -21,15 +23,17 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
 import { NotificationsApi } from '../services/api';
+import { logout } from '../auth';
 
 const drawerWidth = 240;
 
 const navItems = [
-  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
+  { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
   { label: 'Cases', path: '/cases', icon: <GavelIcon /> },
   { label: 'Clients', path: '/clients', icon: <PeopleIcon /> },
   { label: 'Advocates', path: '/advocates', icon: <AccountBoxIcon /> },
@@ -42,13 +46,14 @@ export default function AppLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const activePath = useMemo(() => {
-    const item = navItems.find((x) => x.path !== '/' && location.pathname.startsWith(x.path));
-    return item ? item.path : location.pathname === '/' ? '/' : '';
+    const item = navItems.find((x) => location.pathname.startsWith(x.path));
+    return item ? item.path : '';
   }, [location.pathname]);
 
   const fetchUnread = async () => {
@@ -67,7 +72,7 @@ export default function AppLayout({ children }) {
   }, []);
 
   const drawer = (
-    <Box>
+    <Box sx={{ px: 0, py: 1 }}>
       <Toolbar />
       <List>
         {navItems.map((item) => (
@@ -83,6 +88,18 @@ export default function AppLayout({ children }) {
             <ListItemText primary={item.label} />
           </ListItemButton>
         ))}
+        <ListItemButton
+          selected={location.pathname.startsWith('/profile')}
+          onClick={() => {
+            navigate('/profile');
+            setMobileOpen(false);
+          }}
+        >
+          <ListItemIcon>
+            <AccountCircleIcon />
+          </ListItemIcon>
+          <ListItemText primary="Profile" />
+        </ListItemButton>
       </List>
     </Box>
   );
@@ -109,6 +126,36 @@ export default function AppLayout({ children }) {
               <NotificationsIcon />
             </Badge>
           </IconButton>
+
+          <IconButton color="inherit" onClick={(e) => setProfileAnchorEl(e.currentTarget)}>
+            <AccountCircleIcon />
+          </IconButton>
+
+          <Menu
+            anchorEl={profileAnchorEl}
+            open={Boolean(profileAnchorEl)}
+            onClose={() => setProfileAnchorEl(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem
+              onClick={() => {
+                setProfileAnchorEl(null);
+                navigate('/profile');
+              }}
+            >
+              Profile
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setProfileAnchorEl(null);
+                logout();
+                navigate('/login', { replace: true });
+              }}
+            >
+              Logout
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
