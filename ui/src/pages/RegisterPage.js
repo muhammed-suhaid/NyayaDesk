@@ -80,9 +80,6 @@ export default function RegisterPage() {
                 <Typography variant="h5" sx={{ fontWeight: 800 }}>
                   Create account
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.85 }}>
-                  Register a demo user (stored locally)
-                </Typography>
               </Stack>
 
               {error ? <Alert severity="error">{error}</Alert> : null}

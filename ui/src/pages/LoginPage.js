@@ -62,7 +62,7 @@ export default function LoginPage() {
                 <Stack spacing={2}>
                   <TextField
                     label="Email"
-                    value={email}
+                    // value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     type="email"
                     fullWidth
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   />
                   <TextField
                     label="Password"
-                    value={password}
+                    // value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     type="password"
                     fullWidth
@@ -116,10 +116,6 @@ export default function LoginPage() {
                   Create Account
                 </Button>
               </Stack>
-
-              <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                Demo: {DEMO_CREDENTIALS.email} / {DEMO_CREDENTIALS.password}
-              </Typography>
             </Stack>
           </CardContent>
         </Card>

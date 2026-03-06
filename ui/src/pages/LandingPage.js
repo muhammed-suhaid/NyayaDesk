@@ -68,14 +68,11 @@ export default function LandingPage() {
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={7}>
               <Stack spacing={2}>
-                <Typography variant="overline" sx={{ letterSpacing: 2, opacity: 0.8 }}>
-                  Kerala Legal Practice Suite
-                </Typography>
                 <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                  NyayaDesk – Smart Legal Case Management System
+                  NyayaDesk – Legal Case Management System
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                  A modern digital platform for managing legal cases, clients, advocates, and court schedules for law offices in Kerala.
+                  An AI-Based Legal Case Management and Document Generation System
                 </Typography>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ pt: 1 }}>
@@ -111,9 +108,6 @@ export default function LandingPage() {
                   <Stack spacing={1.5}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       Built for advocates. Designed like court dress.
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      Minimal. Elegant. Professional. A black & white interface with a premium gold accent—tailored for Kerala law offices.
                     </Typography>
                     <Box
                       sx={{
