@@ -1,4 +1,4 @@
-# NyayaDesk - Legal Case Management System (Kerala)
+# NyayaDesk - Legal Case Management System
 
 ## Stack
 
