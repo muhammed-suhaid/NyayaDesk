@@ -17,6 +17,25 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { registerAdminCompany } from '../auth';
 import { isValidEmail, isValidPhoneRequired10Digit, passwordMinLen, required } from '../utils/validation';
 
+// Common text field styling for dark theme
+const textFieldStyles = {
+  '& .MuiOutlinedInput-root': {
+    color: '#ffffff',
+    '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
+    '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
+    '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+    '&.Mui-error fieldset': { borderColor: '#f44336' },
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255,255,255,0.8)',
+    '&.Mui-focused': { color: '#c9a227' },
+    '&.Mui-error': { color: '#f44336' },
+  },
+  '& .MuiFormHelperText-root': {
+    color: '#f44336',
+  },
+};
+
 export default function RegisterPage() {
   const navigate = useNavigate();
 
@@ -131,14 +150,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.companyName)}
                       helperText={errors.companyName}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -152,14 +170,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.companyEmail)}
                       helperText={errors.companyEmail}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -171,14 +188,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.companyPhone)}
                       helperText={errors.companyPhone}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -190,14 +206,13 @@ export default function RegisterPage() {
                       multiline
                       minRows={2}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
 
@@ -211,14 +226,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.name)}
                       helperText={errors.name}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -232,14 +246,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.email)}
                       helperText={errors.email}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -251,14 +264,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.phone)}
                       helperText={errors.phone}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -272,14 +284,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.password)}
                       helperText={errors.password}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -293,14 +304,13 @@ export default function RegisterPage() {
                       error={Boolean(errors.confirmPassword)}
                       helperText={errors.confirmPassword}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
+                      InputProps={{
+                        sx: {
                           color: '#ffffff',
-                          '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
-                          '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
-                          '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                          '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
                         },
                       }}
+                      sx={textFieldStyles}
                     />
                   </Grid>
 

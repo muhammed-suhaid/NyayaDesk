@@ -84,12 +84,27 @@ export default function LoginPage() {
                     error={Boolean(fieldErrors.email)}
                     helperText={fieldErrors.email}
                     InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                    InputProps={{
+                      sx: {
+                        color: '#ffffff',
+                        '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
+                      },
+                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         color: '#ffffff',
                         '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
                         '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
                         '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        '&.Mui-error fieldset': { borderColor: '#f44336' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255,255,255,0.8)',
+                        '&.Mui-focused': { color: '#c9a227' },
+                        '&.Mui-error': { color: '#f44336' },
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: '#f44336',
                       },
                     }}
                   />
@@ -103,12 +118,27 @@ export default function LoginPage() {
                     error={Boolean(fieldErrors.password)}
                     helperText={fieldErrors.password}
                     InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
+                    InputProps={{
+                      sx: {
+                        color: '#ffffff',
+                        '&::placeholder': { color: 'rgba(255,255,255,0.5)' },
+                      },
+                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         color: '#ffffff',
                         '& fieldset': { borderColor: 'rgba(255,255,255,0.25)' },
                         '&:hover fieldset': { borderColor: 'rgba(201,162,39,0.7)' },
                         '&.Mui-focused fieldset': { borderColor: '#c9a227' },
+                        '&.Mui-error fieldset': { borderColor: '#f44336' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: 'rgba(255,255,255,0.8)',
+                        '&.Mui-focused': { color: '#c9a227' },
+                        '&.Mui-error': { color: '#f44336' },
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: '#f44336',
                       },
                     }}
                   />
