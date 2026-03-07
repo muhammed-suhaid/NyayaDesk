@@ -122,11 +122,15 @@ def update_leave_status(leave_id: int):
 
     req.status = status_raw
 
+    # Get advocate name for the notification
+    advocate = Advocate.query.get(req.advocate_id)
+    advocate_name = advocate.name if advocate else "Unknown advocate"
+
     db.session.add(
         Notification(
             company_id=sess.company_id,
             title="Leave request updated",
-            message=f"Leave request #{req.id} is now {status_raw}.",
+            message=f"{advocate_name}'s leave request is now {status_raw}.",
             category="leave",
         )
     )

@@ -45,7 +45,7 @@ export default function DashboardPage() {
         NotificationsApi.list({ limit: 8 }),
       ]);
       setTodayCases(casesRes.data);
-      setNotifications(notifRes.data);
+      setNotifications(notifRes.data.data);
     } catch {
       setTodayCases([]);
       setNotifications([]);
