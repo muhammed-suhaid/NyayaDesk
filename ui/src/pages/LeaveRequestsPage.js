@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Button,
   Card,
   CardContent,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
   Stack,
   TextField,
   Typography,
@@ -18,17 +15,39 @@ import {
   TableRow,
 } from '@mui/material';
 
-import { AdvocatesApi, LeaveApi } from '../services/api';
+import { getRole } from '../auth';
+import { LeaveApi } from '../services/api';
 
 export default function LeaveRequestsPage() {
-  const [advocates, setAdvocates] = useState([]);
   const [items, setItems] = useState([]);
+  const [status, setStatus] = useState({ type: '', message: '' });
 
-  const [form, setForm] = useState({ advocateId: '', startDate: '', endDate: '', reason: '' });
+  const [form, setForm] = useState({ fromDate: '', toDate: '', reason: '' });
+  const role = getRole();
+  const [errors, setErrors] = useState({ fromDate: '', toDate: '', reason: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
+
+  const validate = () => {
+    const next = { fromDate: '', toDate: '', reason: '' };
+    if (!form.fromDate) next.fromDate = 'From date is required';
+    if (!form.toDate) next.toDate = 'To date is required';
+    if (!String(form.reason || '').trim()) next.reason = 'Reason is required';
+
+    if (form.fromDate && form.toDate) {
+      const from = new Date(form.fromDate);
+      const to = new Date(form.toDate);
+      if (!Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime()) && to < from) {
+        next.toDate = 'To date cannot be earlier than From date';
+      }
+    }
+
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  };
 
   const load = async () => {
-    const [advRes, leaveRes] = await Promise.all([AdvocatesApi.list({}), LeaveApi.list({})]);
-    setAdvocates(advRes.data);
+    const leaveRes = await LeaveApi.list({});
     setItems(leaveRes.data);
   };
 
@@ -45,57 +64,57 @@ export default function LeaveRequestsPage() {
           <Typography variant="h6" sx={{ mb: 1 }}>
             Submit Leave Request
           </Typography>
+          {status.message ? <Alert severity={status.type}>{status.message}</Alert> : null}
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Advocate</InputLabel>
-                <Select
-                  label="Advocate"
-                  value={form.advocateId}
-                  onChange={(e) => setForm((s) => ({ ...s, advocateId: e.target.value }))}
-                >
-                  {advocates.map((a) => (
-                    <MenuItem key={a.id} value={a.id}>
-                      {a.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
                 type="date"
-                label="Start date"
+                label="From"
                 InputLabelProps={{ shrink: true }}
-                value={form.startDate}
-                onChange={(e) => setForm((s) => ({ ...s, startDate: e.target.value }))}
+                value={form.fromDate}
+                onChange={(e) => setForm((s) => ({ ...s, fromDate: e.target.value }))}
+                error={Boolean(errors.fromDate)}
+                helperText={errors.fromDate}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 type="date"
-                label="End date"
+                label="To"
                 InputLabelProps={{ shrink: true }}
-                value={form.endDate}
-                onChange={(e) => setForm((s) => ({ ...s, endDate: e.target.value }))}
+                value={form.toDate}
+                onChange={(e) => setForm((s) => ({ ...s, toDate: e.target.value }))}
+                error={Boolean(errors.toDate)}
+                helperText={errors.toDate}
               />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={12} md={4}>
               <Button
                 fullWidth
                 variant="contained"
-                disabled={!form.advocateId || !form.startDate || !form.endDate}
+                disabled={submitting}
                 onClick={async () => {
-                  await LeaveApi.submit({
-                    advocateId: Number(form.advocateId),
-                    startDate: form.startDate,
-                    endDate: form.endDate,
-                    reason: form.reason,
-                  });
-                  setForm({ advocateId: '', startDate: '', endDate: '', reason: '' });
-                  await load();
+                  setStatus({ type: '', message: '' });
+                  if (submitting) return;
+                  if (!validate()) return;
+                  setSubmitting(true);
+                  try {
+                    await LeaveApi.submit({
+                      fromDate: form.fromDate,
+                      toDate: form.toDate,
+                      reason: form.reason,
+                    });
+                    setForm({ fromDate: '', toDate: '', reason: '' });
+                    setErrors({ fromDate: '', toDate: '', reason: '' });
+                    setStatus({ type: 'success', message: 'Leave request submitted' });
+                    await load();
+                  } catch (e) {
+                    setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to submit leave request' });
+                  } finally {
+                    setSubmitting(false);
+                  }
                 }}
               >
                 Submit
@@ -107,6 +126,8 @@ export default function LeaveRequestsPage() {
                 label="Reason"
                 value={form.reason}
                 onChange={(e) => setForm((s) => ({ ...s, reason: e.target.value }))}
+                error={Boolean(errors.reason)}
+                helperText={errors.reason}
               />
             </Grid>
           </Grid>
@@ -121,35 +142,66 @@ export default function LeaveRequestsPage() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Advocate</TableCell>
-                <TableCell>Start</TableCell>
-                <TableCell>End</TableCell>
+                {role === 'admin' ? <TableCell>Advocate</TableCell> : null}
+                <TableCell>Date From</TableCell>
+                <TableCell>Date To</TableCell>
+                <TableCell>Reason</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell />
+                {role === 'admin' ? <TableCell /> : null}
               </TableRow>
             </TableHead>
             <TableBody>
               {items.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell>{r.advocateName}</TableCell>
+                  {role === 'admin' ? <TableCell>{r.advocateName}</TableCell> : null}
                   <TableCell>{r.startDate}</TableCell>
                   <TableCell>{r.endDate}</TableCell>
+                  <TableCell>{r.reason || '-'}</TableCell>
                   <TableCell>{r.status}</TableCell>
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button size="small" onClick={async () => { await LeaveApi.update(r.id, { status: 'approved' }); await load(); }}>
-                        Approve
-                      </Button>
-                      <Button size="small" color="error" onClick={async () => { await LeaveApi.update(r.id, { status: 'rejected' }); await load(); }}>
-                        Reject
-                      </Button>
-                    </Stack>
-                  </TableCell>
+                  {role === 'admin' ? (
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Button
+                          size="small"
+                          disabled={updatingId === r.id}
+                          onClick={async () => {
+                            if (updatingId) return;
+                            setUpdatingId(r.id);
+                            try {
+                              await LeaveApi.update(r.id, { status: 'approved' });
+                              await load();
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="small"
+                          color="error"
+                          disabled={updatingId === r.id}
+                          onClick={async () => {
+                            if (updatingId) return;
+                            setUpdatingId(r.id);
+                            try {
+                              await LeaveApi.update(r.id, { status: 'rejected' });
+                              await load();
+                            } finally {
+                              setUpdatingId(null);
+                            }
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               ))}
               {items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>No leave requests.</TableCell>
+                  <TableCell colSpan={role === 'admin' ? 6 : 4}>No leave requests.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

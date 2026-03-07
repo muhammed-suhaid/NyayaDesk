@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from src.db import db
 from src.models.notification import Notification
 from src.utils.auth import current_session, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 notifications_bp = Blueprint("notifications", __name__)
@@ -45,7 +45,7 @@ def mark_read(notification_id: int):
 
     n.is_read = True
     db.session.commit()
-    return n.to_dict()
+    return success_response("Notification marked read")
 
 
 @notifications_bp.put("/read-all")
@@ -62,4 +62,5 @@ def mark_all_read():
 
     q.update({Notification.is_read: True})
     db.session.commit()
-    return {"status": "ok"}
+
+    return success_response("All notifications marked read")

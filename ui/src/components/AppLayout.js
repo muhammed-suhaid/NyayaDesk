@@ -64,6 +64,10 @@ export default function AppLayout({ children }) {
   }, [role]);
 
   const fetchUnread = async () => {
+    if (role === 'super_admin') {
+      setUnreadCount(0);
+      return;
+    }
     try {
       const res = await NotificationsApi.list({ unread: 1, limit: 100 });
       setUnreadCount(res.data.length);
@@ -74,6 +78,7 @@ export default function AppLayout({ children }) {
 
   useEffect(() => {
     fetchUnread();
+    if (role === 'super_admin') return undefined;
     const t = setInterval(fetchUnread, 15000);
     return () => clearInterval(t);
   }, []);

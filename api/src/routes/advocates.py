@@ -4,7 +4,7 @@ from src.db import db
 from src.models.advocate import Advocate
 from src.models.case import Case
 from src.utils.auth import current_session, require_role, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 advocates_bp = Blueprint("advocates", __name__)
@@ -13,7 +13,7 @@ advocates_bp = Blueprint("advocates", __name__)
 @advocates_bp.post("")
 @require_role("admin")
 def create_advocate():
-    return error_response("Use /admin/users to create advocates", 400)
+    return success_response("Use /admin/users to create advocates", 400)
 
 
 @advocates_bp.get("")
@@ -76,7 +76,7 @@ def update_advocate(advocate_id: int):
             setattr(a, attr, payload.get(field))
 
     db.session.commit()
-    return a.to_dict()
+    return success_response("Advocate updated", advocate=a.to_dict())
 
 
 @advocates_bp.delete("/<int:advocate_id>")
@@ -93,4 +93,4 @@ def delete_advocate(advocate_id: int):
 
     db.session.delete(a)
     db.session.commit()
-    return {"status": "deleted"}
+    return success_response("Advocate deleted")

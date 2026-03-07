@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -24,6 +25,9 @@ export default function CaseDetailsPage() {
   const { caseId } = useParams();
   const navigate = useNavigate();
 
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [uploadError, setUploadError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
   const [item, setItem] = useState(null);
   const [docs, setDocs] = useState([]);
   const [file, setFile] = useState(null);
@@ -41,6 +45,27 @@ export default function CaseDetailsPage() {
   }, [id]);
 
   if (!item) return <Typography>Loading...</Typography>;
+
+  const onUpload = async () => {
+    setUploadError('');
+    if (!file) {
+      setUploadError('Please select a file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File size must be 10MB or less');
+      return;
+    }
+    setStatus({ type: '', message: '' });
+    try {
+      await CasesApi.uploadDocument(id, file);
+      setFile(null);
+      setStatus({ type: 'success', message: 'Document uploaded' });
+      await load();
+    } catch (e) {
+      setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to upload document' });
+    }
+  };
 
   return (
     <Stack spacing={2}>
@@ -96,14 +121,15 @@ export default function CaseDetailsPage() {
                 fullWidth
                 variant="contained"
                 disabled={!file}
-                onClick={async () => {
-                  await CasesApi.uploadDocument(id, file);
-                  setFile(null);
-                  await load();
-                }}
+                onClick={onUpload}
               >
                 Upload
               </Button>
+              {uploadError && (
+                <Alert severity="error" sx={{ mt: 1 }}>
+                  {uploadError}
+                </Alert>
+              )}
             </Grid>
           </Grid>
 
@@ -135,9 +161,20 @@ export default function CaseDetailsPage() {
                         <Button
                           size="small"
                           color="error"
+                          disabled={deletingId === d.id}
                           onClick={async () => {
-                            await CasesApi.deleteDocument(id, d.id);
-                            await load();
+                            if (deletingId) return;
+                            setDeletingId(d.id);
+                            setStatus({ type: '', message: '' });
+                            try {
+                              await CasesApi.deleteDocument(id, d.id);
+                              setStatus({ type: 'success', message: 'Document deleted' });
+                              await load();
+                            } catch (e) {
+                              setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to delete document' });
+                            } finally {
+                              setDeletingId(null);
+                            }
                           }}
                         >
                           Delete

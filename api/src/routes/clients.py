@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from src.db import db
 from src.models.client import Client
 from src.utils.auth import current_session, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 clients_bp = Blueprint("clients", __name__)
@@ -32,7 +32,7 @@ def create_client():
     )
     db.session.add(c)
     db.session.commit()
-    return c.to_dict(), 201
+    return success_response("Client created", 201, client=c.to_dict())
 
 
 @clients_bp.get("")
@@ -73,7 +73,7 @@ def update_client(client_id: int):
             setattr(c, field, payload.get(field))
 
     db.session.commit()
-    return c.to_dict()
+    return success_response("Client updated", client=c.to_dict())
 
 
 @clients_bp.delete("/<int:client_id>")
@@ -90,4 +90,4 @@ def delete_client(client_id: int):
 
     db.session.delete(c)
     db.session.commit()
-    return {"status": "deleted"}
+    return success_response("Client deleted")

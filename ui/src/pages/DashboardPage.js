@@ -16,11 +16,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { CasesApi, NotificationsApi } from '../services/api';
+import { getRole } from '../auth';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [todayCases, setTodayCases] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const role = useMemo(() => getRole(), []);
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -31,12 +33,23 @@ export default function DashboardPage() {
   }, []);
 
   const load = async () => {
-    const [casesRes, notifRes] = await Promise.all([
-      CasesApi.list({ hearingDate: todayStr }),
-      NotificationsApi.list({ limit: 8 }),
-    ]);
-    setTodayCases(casesRes.data);
-    setNotifications(notifRes.data);
+    if (role === 'super_admin') {
+      setTodayCases([]);
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const [casesRes, notifRes] = await Promise.all([
+        CasesApi.list({ hearingDate: todayStr }),
+        NotificationsApi.list({ limit: 8 }),
+      ]);
+      setTodayCases(casesRes.data);
+      setNotifications(notifRes.data);
+    } catch {
+      setTodayCases([]);
+      setNotifications([]);
+    }
   };
 
   useEffect(() => {
@@ -46,6 +59,10 @@ export default function DashboardPage() {
   return (
     <Stack spacing={2}>
       <Typography variant="h5">Dashboard</Typography>
+
+      {role === 'super_admin' ? (
+        <Typography variant="body2">Super admin dashboard is available under the Super Admin menu.</Typography>
+      ) : null}
 
       <Grid container spacing={2}>
         <Grid item xs={12} md={8}>

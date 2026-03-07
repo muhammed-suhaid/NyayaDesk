@@ -15,6 +15,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { registerAdminCompany } from '../auth';
+import { isValidEmail, isValidPhoneRequired10Digit, passwordMinLen, required } from '../utils/validation';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -31,6 +32,49 @@ export default function RegisterPage() {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({
+    companyName: '',
+    companyEmail: '',
+    companyPhone: '',
+    companyAddress: '',
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const validate = () => {
+    const next = {
+      companyName: '',
+      companyEmail: '',
+      companyPhone: '',
+      companyAddress: '',
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+    };
+
+    if (!required(form.companyName)) next.companyName = 'Company name is required';
+    if (!required(form.companyEmail)) next.companyEmail = 'Company email is required';
+    else if (!isValidEmail(form.companyEmail)) next.companyEmail = 'Enter a valid email';
+    if (!isValidPhoneRequired10Digit(form.companyPhone)) next.companyPhone = 'Enter a valid 10-digit phone number';
+    if (!required(form.companyAddress)) next.companyAddress = 'Company address is required';
+
+    if (!required(form.name)) next.name = 'Admin name is required';
+    if (!required(form.email)) next.email = 'Admin email is required';
+    else if (!isValidEmail(form.email)) next.email = 'Enter a valid email';
+    if (!isValidPhoneRequired10Digit(form.phone)) next.phone = 'Enter a valid 10-digit phone number';
+    if (!required(form.password)) next.password = 'Password is required';
+    else if (!passwordMinLen(form.password, 6)) next.password = 'Password must be at least 6 characters';
+    if (!required(form.confirmPassword)) next.confirmPassword = 'Confirm password is required';
+    else if (form.password !== form.confirmPassword) next.confirmPassword = 'Passwords do not match';
+
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  };
 
   const onChange = (field) => (e) => setForm((s) => ({ ...s, [field]: e.target.value }));
 
@@ -38,25 +82,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (!form.companyName.trim()) {
-      setError('Company name is required');
-      return;
-    }
-
-    if (!form.name.trim() || !form.email.trim()) {
-      setError('Admin name and email are required');
-      return;
-    }
-
-    if (form.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    if (!validate()) return;
 
     (async () => {
       const res = await registerAdminCompany({
@@ -102,6 +128,8 @@ export default function RegisterPage() {
                       onChange={onChange('companyName')}
                       fullWidth
                       required
+                      error={Boolean(errors.companyName)}
+                      helperText={errors.companyName}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -120,6 +148,9 @@ export default function RegisterPage() {
                       onChange={onChange('companyEmail')}
                       type="email"
                       fullWidth
+                      required
+                      error={Boolean(errors.companyEmail)}
+                      helperText={errors.companyEmail}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -137,6 +168,8 @@ export default function RegisterPage() {
                       value={form.companyPhone}
                       onChange={onChange('companyPhone')}
                       fullWidth
+                      error={Boolean(errors.companyPhone)}
+                      helperText={errors.companyPhone}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -175,6 +208,8 @@ export default function RegisterPage() {
                       onChange={onChange('name')}
                       fullWidth
                       required
+                      error={Boolean(errors.name)}
+                      helperText={errors.name}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -194,6 +229,8 @@ export default function RegisterPage() {
                       type="email"
                       fullWidth
                       required
+                      error={Boolean(errors.email)}
+                      helperText={errors.email}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -211,6 +248,8 @@ export default function RegisterPage() {
                       value={form.phone}
                       onChange={onChange('phone')}
                       fullWidth
+                      error={Boolean(errors.phone)}
+                      helperText={errors.phone}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -230,6 +269,8 @@ export default function RegisterPage() {
                       type="password"
                       fullWidth
                       required
+                      error={Boolean(errors.password)}
+                      helperText={errors.password}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -249,6 +290,8 @@ export default function RegisterPage() {
                       type="password"
                       fullWidth
                       required
+                      error={Boolean(errors.confirmPassword)}
+                      helperText={errors.confirmPassword}
                       InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                       sx={{
                         '& .MuiOutlinedInput-root': {

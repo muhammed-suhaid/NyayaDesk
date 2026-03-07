@@ -7,7 +7,7 @@ from src.models.company import Company
 from src.models.user import User
 from src.services.auth_service import create_token_for_user, revoke_token
 from src.utils.auth import require_auth, current_session
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -97,4 +97,34 @@ def logout():
     sess = current_session()
     token = (request.headers.get("Authorization") or "").split(" ", 1)[1].strip()
     revoke_token(token)
-    return {"status": "ok"}
+    return success_response("Logged out")
+
+
+@auth_bp.put("/profile")
+@require_auth
+def update_profile():
+    sess = current_session()
+    assert sess is not None
+
+    payload = request.get_json(silent=True) or {}
+    name = (payload.get("name") or "").strip()
+    phone = (payload.get("phone") or "").strip()
+    password = payload.get("password")
+
+    user = User.query.get(sess.user_id)
+    if not user:
+        return error_response("User not found", 404)
+
+    if name:
+        user.name = name
+    if phone:
+        user.phone = phone
+    if password is not None:
+        if not str(password).strip():
+            return error_response("password cannot be empty")
+        if len(str(password)) < 6:
+            return error_response("password must be at least 6 characters")
+        user.password = str(password)
+
+    db.session.commit()
+    return success_response("Profile updated", user=user.to_safe_dict())

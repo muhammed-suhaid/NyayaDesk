@@ -14,6 +14,7 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 import { DEMO_CREDENTIALS, login } from '../auth';
+import { isValidEmail, passwordMinLen, required } from '../utils/validation';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -22,6 +23,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState(DEMO_CREDENTIALS.email);
   const [password, setPassword] = useState(DEMO_CREDENTIALS.password);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
+
+  const validate = () => {
+    const next = { email: '', password: '' };
+    if (!required(email)) next.email = 'Email is required';
+    else if (!isValidEmail(email)) next.email = 'Enter a valid email';
+    if (!required(password)) next.password = 'Password is required';
+    else if (!passwordMinLen(password, 6)) next.password = 'Password must be at least 6 characters';
+    setFieldErrors(next);
+    return !Object.values(next).some(Boolean);
+  };
 
   const redirectTo = useMemo(() => {
     const from = location.state?.from?.pathname;
@@ -31,6 +43,8 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!validate()) return;
 
     const res = await login(email, password);
     if (!res.ok) {
@@ -67,6 +81,8 @@ export default function LoginPage() {
                     type="email"
                     fullWidth
                     required
+                    error={Boolean(fieldErrors.email)}
+                    helperText={fieldErrors.email}
                     InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -84,6 +100,8 @@ export default function LoginPage() {
                     type="password"
                     fullWidth
                     required
+                    error={Boolean(fieldErrors.password)}
+                    helperText={fieldErrors.password}
                     InputLabelProps={{ sx: { color: 'rgba(255,255,255,0.8)' } }}
                     sx={{
                       '& .MuiOutlinedInput-root': {

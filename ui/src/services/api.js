@@ -29,6 +29,7 @@ export const AuthApi = {
   login: (payload) => http.post('/auth/login', payload),
   registerAdmin: (payload) => http.post('/auth/register-admin', payload),
   logout: () => http.post('/auth/logout'),
+  updateProfile: (payload) => http.put('/auth/profile', payload),
 };
 
 export const AdminApi = {

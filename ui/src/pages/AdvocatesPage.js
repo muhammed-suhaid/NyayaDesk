@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
+  Box,
   Button,
   Card,
   CardContent,
@@ -23,18 +25,35 @@ import {
 } from '@mui/material';
 
 import { AdvocatesApi } from '../services/api';
+import { isValidEmail, isValidPhoneRequired10Digit, passwordMinLen, required } from '../utils/validation';
 
 export default function AdvocatesPage() {
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState({ type: '', message: '' });
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
+    password: '',
     barCouncilNumber: '',
     role: 'Advocate',
     status: 'Active',
   });
+  const [errors, setErrors] = useState({ name: '', email: '', phone: '', password: '', barCouncilNumber: '' });
+
+  const validate = () => {
+    const next = { name: '', email: '', phone: '', password: '', barCouncilNumber: '' };
+    if (!required(form.name)) next.name = 'Name is required';
+    if (!required(form.email)) next.email = 'Email is required';
+    else if (!isValidEmail(form.email)) next.email = 'Enter a valid email';
+    if (!isValidPhoneRequired10Digit(form.phone)) next.phone = 'Enter a valid 10-digit phone number';
+    if (!required(form.password)) next.password = 'Password is required';
+    else if (!passwordMinLen(form.password, 6)) next.password = 'Password must be at least 6 characters';
+    if (!required(form.barCouncilNumber)) next.barCouncilNumber = 'Bar council number is required';
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  };
 
   const load = async () => {
     const res = await AdvocatesApi.list({ includeWorkload: 1 });
@@ -100,18 +119,65 @@ export default function AdvocatesPage() {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create Advocate</DialogTitle>
         <DialogContent>
+          {status.message ? <Alert severity={status.type} sx={{ mb: 2 }}>
+            {status.message}
+          </Alert> : null}
           <Grid container spacing={2} sx={{ pt: 1 }}>
             <Grid item xs={12}>
-              <TextField fullWidth required label="Name" value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} />
+              <TextField
+                fullWidth
+                required
+                label="Name"
+                value={form.name}
+                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                error={Boolean(errors.name)}
+                helperText={errors.name}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Phone" value={form.phone} onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))} />
+              <TextField
+                fullWidth
+                required
+                label="Phone"
+                value={form.phone}
+                onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
+                error={Boolean(errors.phone)}
+                helperText={errors.phone}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Email" value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} />
+              <TextField
+                fullWidth
+                required
+                label="Email"
+                value={form.email}
+                onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
+                error={Boolean(errors.email)}
+                helperText={errors.email}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                required
+                type="password"
+                label="Password"
+                value={form.password}
+                onChange={(e) => setForm((s) => ({ ...s, password: e.target.value }))}
+                error={Boolean(errors.password)}
+                helperText={errors.password}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth label="Bar council number" value={form.barCouncilNumber} onChange={(e) => setForm((s) => ({ ...s, barCouncilNumber: e.target.value }))} />
+              <TextField
+                fullWidth
+                required
+                label="Bar council number"
+                value={form.barCouncilNumber}
+                onChange={(e) => setForm((s) => ({ ...s, barCouncilNumber: e.target.value }))}
+                error={Boolean(errors.barCouncilNumber)}
+                helperText={errors.barCouncilNumber}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
@@ -138,10 +204,24 @@ export default function AdvocatesPage() {
           <Button
             variant="contained"
             onClick={async () => {
-              await AdvocatesApi.create(form);
-              setOpen(false);
-              setForm({ name: '', phone: '', email: '', barCouncilNumber: '', role: 'Advocate', status: 'Active' });
-              await load();
+              setStatus({ type: '', message: '' });
+              if (!validate()) return;
+
+              try {
+                await AdvocatesApi.create({
+                  name: form.name.trim(),
+                  email: form.email.trim().toLowerCase(),
+                  phone: form.phone.trim(),
+                  password: form.password,
+                  barCouncilNumber: form.barCouncilNumber.trim(),
+                });
+                setOpen(false);
+                setForm({ name: '', phone: '', email: '', password: '', barCouncilNumber: '', role: 'Advocate', status: 'Active' });
+                setErrors({ name: '', email: '', phone: '', password: '', barCouncilNumber: '' });
+                await load();
+              } catch (e) {
+                setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to create advocate' });
+              }
             }}
           >
             Save

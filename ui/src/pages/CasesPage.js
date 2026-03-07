@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -39,6 +40,7 @@ export default function CasesPage() {
   const [filters, setFilters] = useState({ status: '', advocateId: '', district: '' });
 
   const [openCreate, setOpenCreate] = useState(false);
+  const [createStatus, setCreateStatus] = useState({ type: '', message: '' });
   const [form, setForm] = useState({
     title: '',
     caseNumber: '',
@@ -54,6 +56,50 @@ export default function CasesPage() {
     assignedAdvocateId: '',
     clientIds: [],
   });
+  const [errors, setErrors] = useState({
+    title: '',
+    caseNumber: '',
+    caseType: '',
+    courtName: '',
+    district: '',
+    state: '',
+    nextHearingDate: '',
+    nextPurpose: '',
+    description: '',
+    clientIds: '',
+  });
+
+  const validateCreate = () => {
+    const next = {
+      title: '',
+      caseNumber: '',
+      caseType: '',
+      courtName: '',
+      district: '',
+      state: '',
+      nextHearingDate: '',
+      nextPurpose: '',
+      description: '',
+      clientIds: '',
+    };
+    if (!form.title.trim()) next.title = 'Case title is required';
+    if (!String(form.caseNumber || '').trim()) next.caseNumber = 'Case number is required';
+    if (!String(form.caseType || '').trim()) next.caseType = 'Case type is required';
+    if (!String(form.courtName || '').trim()) next.courtName = 'Court name is required';
+    if (!String(form.district || '').trim()) next.district = 'District is required';
+    if (!String(form.state || '').trim()) next.state = 'State is required';
+    if (!String(form.nextPurpose || '').trim()) next.nextPurpose = 'Next purpose is required';
+    if (!String(form.description || '').trim()) next.description = 'Description is required';
+    if (!Array.isArray(form.clientIds) || form.clientIds.length === 0) next.clientIds = 'Select at least one client';
+    if (form.nextHearingDate) {
+      const d = new Date(form.nextHearingDate);
+      if (Number.isNaN(d.getTime())) next.nextHearingDate = 'Invalid date';
+    } else {
+      next.nextHearingDate = 'Next hearing date is required';
+    }
+    setErrors(next);
+    return !Object.values(next).some(Boolean);
+  };
 
   const params = useMemo(() => {
     const p = {};
@@ -179,6 +225,9 @@ export default function CasesPage() {
       <Dialog open={openCreate} onClose={() => setOpenCreate(false)} maxWidth="md" fullWidth>
         <DialogTitle>Create Case</DialogTitle>
         <DialogContent>
+          {createStatus.message ? <Alert severity={createStatus.type} sx={{ mb: 2 }}>
+            {createStatus.message}
+          </Alert> : null}
           <Box sx={{ pt: 1 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
@@ -188,6 +237,8 @@ export default function CasesPage() {
                   label="Case title"
                   value={form.title}
                   onChange={(e) => setForm((s) => ({ ...s, title: e.target.value }))}
+                  error={Boolean(errors.title)}
+                  helperText={errors.title}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -196,6 +247,9 @@ export default function CasesPage() {
                   label="Case number"
                   value={form.caseNumber}
                   onChange={(e) => setForm((s) => ({ ...s, caseNumber: e.target.value }))}
+                  required
+                  error={Boolean(errors.caseNumber)}
+                  helperText={errors.caseNumber}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -204,6 +258,9 @@ export default function CasesPage() {
                   label="Case type"
                   value={form.caseType}
                   onChange={(e) => setForm((s) => ({ ...s, caseType: e.target.value }))}
+                  required
+                  error={Boolean(errors.caseType)}
+                  helperText={errors.caseType}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -228,6 +285,9 @@ export default function CasesPage() {
                   label="Court name"
                   value={form.courtName}
                   onChange={(e) => setForm((s) => ({ ...s, courtName: e.target.value }))}
+                  required
+                  error={Boolean(errors.courtName)}
+                  helperText={errors.courtName}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
@@ -236,6 +296,9 @@ export default function CasesPage() {
                   label="District"
                   value={form.district}
                   onChange={(e) => setForm((s) => ({ ...s, district: e.target.value }))}
+                  required
+                  error={Boolean(errors.district)}
+                  helperText={errors.district}
                 />
               </Grid>
               <Grid item xs={12} md={3}>
@@ -244,6 +307,9 @@ export default function CasesPage() {
                   label="State"
                   value={form.state}
                   onChange={(e) => setForm((s) => ({ ...s, state: e.target.value }))}
+                  required
+                  error={Boolean(errors.state)}
+                  helperText={errors.state}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -254,6 +320,9 @@ export default function CasesPage() {
                   InputLabelProps={{ shrink: true }}
                   value={form.nextHearingDate}
                   onChange={(e) => setForm((s) => ({ ...s, nextHearingDate: e.target.value }))}
+                  error={Boolean(errors.nextHearingDate)}
+                  helperText={errors.nextHearingDate}
+                  required
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -306,6 +375,11 @@ export default function CasesPage() {
                     ))}
                   </Select>
                 </FormControl>
+                {errors.clientIds ? (
+                  <Typography variant="caption" color="error">
+                    {errors.clientIds}
+                  </Typography>
+                ) : null}
               </Grid>
 
               <Grid item xs={12}>
@@ -314,6 +388,9 @@ export default function CasesPage() {
                   label="Next purpose of hearing"
                   value={form.nextPurpose}
                   onChange={(e) => setForm((s) => ({ ...s, nextPurpose: e.target.value }))}
+                  required
+                  error={Boolean(errors.nextPurpose)}
+                  helperText={errors.nextPurpose}
                 />
               </Grid>
 
@@ -325,6 +402,9 @@ export default function CasesPage() {
                   label="Description"
                   value={form.description}
                   onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+                  required
+                  error={Boolean(errors.description)}
+                  helperText={errors.description}
                 />
               </Grid>
             </Grid>
@@ -335,27 +415,56 @@ export default function CasesPage() {
           <Button
             variant="contained"
             onClick={async () => {
-              await CasesApi.create({
-                ...form,
-                assignedAdvocateId: form.assignedAdvocateId === '' ? null : form.assignedAdvocateId,
-              });
-              setOpenCreate(false);
-              setForm({
-                title: '',
-                caseNumber: '',
-                caseType: '',
-                caseGroup: 'Civil',
-                courtName: '',
-                district: '',
-                state: 'Kerala',
-                nextHearingDate: '',
-                currentStatus: 'Open',
-                nextPurpose: '',
-                description: '',
-                assignedAdvocateId: '',
-                clientIds: [],
-              });
-              load();
+              setCreateStatus({ type: '', message: '' });
+              if (!validateCreate()) return;
+
+              const assigned = form.assignedAdvocateId === '' ? null : Number(form.assignedAdvocateId);
+              if (assigned !== null && Number.isNaN(assigned)) {
+                setCreateStatus({ type: 'error', message: 'Invalid assigned advocate' });
+                return;
+              }
+
+              try {
+                await CasesApi.create({
+                  ...form,
+                  title: form.title.trim(),
+                  district: form.district.trim() || null,
+                  courtName: form.courtName.trim() || null,
+                  state: form.state.trim() || null,
+                  assignedAdvocateId: assigned,
+                });
+                setOpenCreate(false);
+                setForm({
+                  title: '',
+                  caseNumber: '',
+                  caseType: '',
+                  caseGroup: 'Civil',
+                  courtName: '',
+                  district: '',
+                  state: 'Kerala',
+                  nextHearingDate: '',
+                  currentStatus: 'Open',
+                  nextPurpose: '',
+                  description: '',
+                  assignedAdvocateId: '',
+                  clientIds: [],
+                });
+                setErrors({
+                  title: '',
+                  caseNumber: '',
+                  caseType: '',
+                  courtName: '',
+                  district: '',
+                  state: '',
+                  nextHearingDate: '',
+                  nextPurpose: '',
+                  description: '',
+                  clientIds: '',
+                });
+                load();
+              } catch (e) {
+                setCreateStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to create case' });
+              }
             }}
           >
             Save

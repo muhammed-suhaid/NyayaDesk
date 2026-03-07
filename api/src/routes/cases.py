@@ -8,7 +8,7 @@ from src.models.case_client import CaseClient
 from src.models.client import Client
 from src.models.notification import Notification
 from src.utils.auth import current_session, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 cases_bp = Blueprint("cases", __name__)
@@ -86,7 +86,11 @@ def create_case():
 
     db.session.commit()
 
-    return new_case.to_dict(include_clients=True, include_advocate=True), 201
+    return success_response(
+        "Case created",
+        201,
+        case=new_case.to_dict(include_clients=True, include_advocate=True),
+    )
 
 
 @cases_bp.get("")
@@ -216,7 +220,10 @@ def update_case(case_id: int):
     )
 
     db.session.commit()
-    return c.to_dict(include_clients=True, include_advocate=True)
+    return success_response(
+        "Case updated",
+        case=c.to_dict(include_clients=True, include_advocate=True),
+    )
 
 
 @cases_bp.delete("/<int:case_id>")
@@ -243,4 +250,4 @@ def delete_case(case_id: int):
     )
 
     db.session.commit()
-    return {"status": "deleted"}
+    return success_response("Case deleted")

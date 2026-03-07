@@ -8,7 +8,7 @@ from src.models.payment import Payment
 from src.models.user import User
 
 
-def seed_if_empty():
+def seed_if_needed():
     if User.query.count() > 0:
         return
 

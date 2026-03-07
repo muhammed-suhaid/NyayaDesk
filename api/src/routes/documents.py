@@ -6,7 +6,7 @@ from src.models.document import Document
 from src.models.notification import Notification
 from src.services.documents_service import delete_document_file, get_document_path, store_case_document
 from src.utils.auth import current_session, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 documents_bp = Blueprint("documents", __name__)
@@ -54,7 +54,7 @@ def upload_case_document(case_id: int):
     )
     db.session.commit()
 
-    return doc.to_dict(), 201
+    return success_response("Document uploaded", 201, document=doc.to_dict())
 
 
 @documents_bp.get("/<int:case_id>/documents")
@@ -121,4 +121,4 @@ def delete_case_document(case_id: int, doc_id: int):
     )
     db.session.commit()
 
-    return {"status": "deleted"}
+    return success_response("Document deleted")

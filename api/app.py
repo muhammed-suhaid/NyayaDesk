@@ -17,8 +17,40 @@ from src.routes.leave_requests import leave_bp
 from src.routes.notifications import notifications_bp
 from src.routes.reports import reports_bp
 from src.routes.superadmin import superadmin_bp
-from src.services.seed_service import seed_if_empty
+from src.services.seed_service import seed_if_needed
 from src.utils.settings import AppSettings
+
+
+def _normalize_attendance_statuses():
+    from src.models.attendance import Attendance
+
+    allowed = {"present", "absent"}
+    changed = False
+    for r in Attendance.query.all():
+        s = (r.status or "").strip().lower()
+        if s not in allowed:
+            s = "present"
+        if r.status != s:
+            r.status = s
+            changed = True
+    if changed:
+        db.session.commit()
+
+
+def _normalize_leave_statuses():
+    from src.models.leave_request import LeaveRequest
+
+    allowed = {"pending", "approved", "rejected"}
+    changed = False
+    for r in LeaveRequest.query.all():
+        s = (r.status or "").strip().lower()
+        if s not in allowed:
+            s = "pending"
+        if r.status != s:
+            r.status = s
+            changed = True
+    if changed:
+        db.session.commit()
 
 
 def create_app() -> Flask:
@@ -38,7 +70,9 @@ def create_app() -> Flask:
         from src import models  # noqa: F401
 
         db.create_all()
-        seed_if_empty()
+        seed_if_needed()
+        _normalize_attendance_statuses()
+        _normalize_leave_statuses()
 
     app.register_blueprint(cases_bp, url_prefix="/api/cases")
     app.register_blueprint(clients_bp, url_prefix="/api/clients")

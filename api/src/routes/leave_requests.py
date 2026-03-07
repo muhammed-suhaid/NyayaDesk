@@ -7,7 +7,7 @@ from src.models.advocate import Advocate
 from src.models.leave_request import LeaveRequest
 from src.models.notification import Notification
 from src.utils.auth import current_session, require_auth
-from src.utils.http import error_response
+from src.utils.http import error_response, success_response
 
 
 leave_bp = Blueprint("leave", __name__)
@@ -21,31 +21,44 @@ def submit_leave_request():
     if sess.role == "super_admin":
         return error_response("Super admin cannot submit leave", 403)
 
+    if sess.role != "advocate":
+        return error_response("Only advocates can submit leave requests", 403)
+
     payload = request.get_json(silent=True) or {}
 
-    advocate_id = payload.get("advocateId")
-    if not advocate_id:
-        return error_response("advocateId is required")
+    reason = (payload.get("reason") or "").strip()
+    if not payload.get("fromDate"):
+        return error_response("fromDate is required")
+    if not payload.get("toDate"):
+        return error_response("toDate is required")
+    if not reason:
+        return error_response("reason is required")
 
-    advocate = Advocate.query.filter_by(id=advocate_id, company_id=sess.company_id).first()
+    from src.models.user import User
+
+    user = User.query.get(sess.user_id)
+    if not user:
+        return error_response("User not found", 404)
+
+    advocate = Advocate.query.filter_by(email=user.email, company_id=sess.company_id).first()
     if not advocate:
         return error_response("Advocate not found", 404)
 
     try:
-        start_date = datetime.strptime(payload.get("startDate"), "%Y-%m-%d").date()
-        end_date = datetime.strptime(payload.get("endDate"), "%Y-%m-%d").date()
+        start_date = datetime.strptime(payload.get("fromDate"), "%Y-%m-%d").date()
+        end_date = datetime.strptime(payload.get("toDate"), "%Y-%m-%d").date()
     except Exception:
-        return error_response("Invalid startDate/endDate")
+        return error_response("Invalid fromDate/toDate")
 
     if end_date < start_date:
-        return error_response("endDate cannot be earlier than startDate")
+        return error_response("fromDate must be earlier than or equal to toDate")
 
     req = LeaveRequest(
         company_id=sess.company_id,
         advocate_id=advocate.id,
         start_date=start_date,
         end_date=end_date,
-        reason=payload.get("reason"),
+        reason=reason,
         status="pending",
     )
 
@@ -60,7 +73,7 @@ def submit_leave_request():
     )
     db.session.commit()
 
-    return req.to_dict(), 201
+    return success_response("Leave request submitted", 201, leave=req.to_dict())
 
 
 @leave_bp.get("")
@@ -71,10 +84,20 @@ def list_leave_requests():
     if sess.role == "super_admin":
         return error_response("Super admin must use /superadmin endpoints", 403)
 
-    advocate_id = request.args.get("advocateId")
     q = LeaveRequest.query.filter(LeaveRequest.company_id == sess.company_id)
-    if advocate_id:
-        q = q.filter(LeaveRequest.advocate_id == int(advocate_id))
+
+    if sess.role == "advocate":
+        from src.models.user import User
+
+        user = User.query.get(sess.user_id)
+        if not user:
+            return error_response("User not found", 404)
+        advocate = Advocate.query.filter_by(email=user.email, company_id=sess.company_id).first()
+        if not advocate:
+            return error_response("Advocate not found", 404)
+        q = q.filter(LeaveRequest.advocate_id == advocate.id)
+    elif sess.role != "admin":
+        return error_response("Forbidden", 403)
 
     reqs = q.order_by(LeaveRequest.created_at.desc()).limit(500).all()
     return [r.to_dict() for r in reqs]
@@ -93,20 +116,20 @@ def update_leave_status(leave_id: int):
         return error_response("Leave request not found", 404)
 
     payload = request.get_json(silent=True) or {}
-    status = payload.get("status")
-    if status not in {"pending", "approved", "rejected"}:
+    status_raw = (payload.get("status") or "").strip().lower()
+    if status_raw not in {"pending", "approved", "rejected"}:
         return error_response("Invalid status")
 
-    req.status = status
+    req.status = status_raw
 
     db.session.add(
         Notification(
             company_id=sess.company_id,
             title="Leave request updated",
-            message=f"Leave request #{req.id} is now {status}.",
+            message=f"Leave request #{req.id} is now {status_raw}.",
             category="leave",
         )
     )
 
     db.session.commit()
-    return req.to_dict()
+    return success_response("Leave request updated", leave=req.to_dict())
