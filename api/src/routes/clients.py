@@ -16,6 +16,8 @@ def create_client():
     assert sess is not None
     if sess.role == "super_admin":
         return error_response("Super admin cannot create clients", 403)
+    if sess.role != "admin":
+        return error_response("Only admins can create clients", 403)
 
     payload = request.get_json(silent=True) or {}
     name = (payload.get("name") or "").strip()
@@ -55,6 +57,8 @@ def update_client(client_id: int):
     assert sess is not None
     if sess.role == "super_admin":
         return error_response("Super admin cannot update clients", 403)
+    if sess.role != "admin":
+        return error_response("Only admins can update clients", 403)
 
     c = Client.query.filter_by(id=client_id, company_id=sess.company_id).first()
     if not c:
@@ -83,11 +87,29 @@ def delete_client(client_id: int):
     assert sess is not None
     if sess.role == "super_admin":
         return error_response("Super admin cannot delete clients", 403)
+    if sess.role != "admin":
+        return error_response("Only admins can delete clients", 403)
 
     c = Client.query.filter_by(id=client_id, company_id=sess.company_id).first()
     if not c:
         return error_response("Client not found", 404)
 
-    db.session.delete(c)
-    db.session.commit()
-    return success_response("Client deleted")
+    try:
+        # Add notification before deletion
+        from src.models.notification import Notification
+        db.session.add(
+            Notification(
+                company_id=sess.company_id,
+                title="Client deleted",
+                message=f"Client '{c.name}' was deleted from the firm.",
+                category="client",
+            )
+        )
+        
+        # Delete the client - cascade will handle case_client relationships automatically
+        db.session.delete(c)
+        db.session.commit()
+        return success_response("Client deleted")
+    except Exception as e:
+        db.session.rollback()
+        return error_response(f"Failed to delete client: {str(e)}", 500)

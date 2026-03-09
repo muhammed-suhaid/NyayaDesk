@@ -84,6 +84,8 @@ def update_advocate(advocate_id: int):
 def delete_advocate(advocate_id: int):
     sess = current_session()
     assert sess is not None
+    if sess.role == "super_admin":
+        return error_response("Super admin cannot delete advocates", 403)
     if sess.role != "admin":
         return error_response("Only admin can delete advocates", 403)
 
@@ -91,6 +93,40 @@ def delete_advocate(advocate_id: int):
     if not a:
         return error_response("Advocate not found", 404)
 
-    db.session.delete(a)
-    db.session.commit()
-    return success_response("Advocate deleted")
+    # Check if advocate has associated cases
+    from src.models.case import Case
+    case_count = Case.query.filter_by(assigned_advocate_id=advocate_id).count()
+    if case_count > 0:
+        return error_response(f"⚠️ Cannot delete advocate '{a.name}' because they are assigned to {case_count} case(s). Please reassign all cases to other advocates first.", 400)
+
+    # Check if advocate has attendance records
+    from src.models.attendance import Attendance
+    attendance_count = Attendance.query.filter_by(advocate_id=advocate_id).count()
+    if attendance_count > 0:
+        return error_response(f"⚠️ Cannot delete advocate '{a.name}' because they have {attendance_count} attendance record(s). Please handle attendance records first.", 400)
+
+    # Delete the corresponding user record
+    from src.models.user import User
+    user = User.query.filter_by(email=a.email, company_id=sess.company_id).first()
+    
+    try:
+        # Add notification before deletion
+        from src.models.notification import Notification
+        db.session.add(
+            Notification(
+                company_id=sess.company_id,
+                title="Advocate deleted",
+                message=f"Advocate '{a.name}' was deleted from the firm.",
+                category="user",
+            )
+        )
+        
+        # Delete user first (if exists), then advocate
+        if user:
+            db.session.delete(user)
+        db.session.delete(a)
+        db.session.commit()
+        return success_response("Advocate deleted")
+    except Exception as e:
+        db.session.rollback()
+        return error_response(f"Failed to delete advocate: {str(e)}", 500)

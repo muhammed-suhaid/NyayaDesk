@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { AdvocatesApi, CasesApi, ClientsApi } from '../services/api';
+import { getRole } from '../auth';
 
 const caseGroups = ['Civil', 'Criminal', 'Consumer', 'Family', 'Writ', 'Other'];
 const statuses = ['Open', 'Pending', 'Closed'];
@@ -56,6 +57,10 @@ export default function CasesPage() {
     assignedAdvocateId: '',
     clientIds: [],
   });
+
+  const role = getRole();
+  const canCreateCases = role === 'admin' || role === 'advocate';
+
   const [errors, setErrors] = useState({
     title: '',
     caseNumber: '',
@@ -128,9 +133,11 @@ export default function CasesPage() {
     <Stack spacing={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h5">Cases</Typography>
-        <Button variant="contained" onClick={() => setOpenCreate(true)}>
-          Create Case
-        </Button>
+        {canCreateCases && (
+          <Button variant="contained" onClick={() => setOpenCreate(true)}>
+            Create Case
+          </Button>
+        )}
       </Stack>
 
       <Card>

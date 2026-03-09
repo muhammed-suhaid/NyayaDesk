@@ -24,6 +24,7 @@ pip install -r api/requirements.txt
 2. Start the API:
 
 ```bash
+venv\Scripts\activate
 python api/app.py
 ```
 

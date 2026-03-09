@@ -25,6 +25,7 @@ import {
 } from '@mui/material';
 
 import { AdvocatesApi } from '../services/api';
+import { getRole } from '../auth';
 import { isValidEmail, isValidPhoneRequired10Digit, passwordMinLen, required } from '../utils/validation';
 
 export default function AdvocatesPage() {
@@ -41,6 +42,10 @@ export default function AdvocatesPage() {
     status: 'Active',
   });
   const [errors, setErrors] = useState({ name: '', email: '', phone: '', password: '', barCouncilNumber: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, advocate: null });
+
+  const role = getRole();
+  const canManageUsers = role === 'admin';
 
   const validate = () => {
     const next = { name: '', email: '', phone: '', password: '', barCouncilNumber: '' };
@@ -60,17 +65,50 @@ export default function AdvocatesPage() {
     setItems(res.data);
   };
 
+  const handleDeleteClick = (advocate) => {
+    setDeleteConfirm({ open: true, advocate });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.advocate) return;
+    
+    try {
+      await AdvocatesApi.remove(deleteConfirm.advocate.id);
+      await load();
+      setStatus({ type: 'success', message: 'Advocate deleted successfully' });
+      setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    } catch (error) {
+      console.error('Delete advocate error:', error);
+      setStatus({ type: 'error', message: error.response?.data?.error || 'Failed to delete advocate' });
+      setTimeout(() => setStatus({ type: '', message: '' }), 5000);
+    } finally {
+      setDeleteConfirm({ open: false, advocate: null });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ open: false, advocate: null });
+  };
+
   useEffect(() => {
     load();
   }, []);
 
   return (
     <Stack spacing={2}>
+      {status.message && (
+        <Alert severity={status.type} sx={{ mb: 2 }}>
+          {status.message}
+        </Alert>
+      )}
+      
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h5">Advocates</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>
-          Create Advocate
-        </Button>
+        {canManageUsers && (
+          <Button variant="contained" onClick={() => setOpen(true)}>
+            Create Advocate
+          </Button>
+        )}
       </Stack>
 
       <Card>
@@ -93,16 +131,15 @@ export default function AdvocatesPage() {
                   <TableCell>{a.status}</TableCell>
                   <TableCell>{a.openCaseCount ?? '-'}</TableCell>
                   <TableCell align="right">
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={async () => {
-                        await AdvocatesApi.remove(a.id);
-                        await load();
-                      }}
-                    >
-                      Delete
-                    </Button>
+                    {canManageUsers && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(a)}
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -225,6 +262,33 @@ export default function AdvocatesPage() {
             }}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirm.open} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete advocate <strong>{deleteConfirm.advocate?.name}</strong>?
+          </Typography>
+          {deleteConfirm.advocate && deleteConfirm.advocate.openCaseCount > 0 && (
+            <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+              ⚠️ This advocate is assigned to {deleteConfirm.advocate.openCaseCount} case(s). 
+              Please reassign all cases to other advocates first before deleting.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+            disabled={deleteConfirm.advocate && deleteConfirm.advocate.openCaseCount > 0}
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

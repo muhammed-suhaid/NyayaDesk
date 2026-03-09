@@ -36,6 +36,24 @@ def create_case():
     if not title:
         return error_response("Case title is required")
 
+    # Check if advocate is trying to create a case
+    if sess.role == "advocate":
+        from src.models.user import User
+        from src.models.advocate import Advocate
+        
+        user = User.query.get(sess.user_id)
+        if not user:
+            return error_response("User not found", 404)
+            
+        advocate = Advocate.query.filter_by(email=user.email, company_id=sess.company_id).first()
+        if not advocate:
+            return error_response("Advocate not found", 404)
+        
+        # Advocates can only create cases for themselves
+        assigned_advocate_id = payload.get("assignedAdvocateId")
+        if assigned_advocate_id and int(assigned_advocate_id) != advocate.id:
+            return error_response("Advocates can only create cases for themselves", 403)
+
     new_case = Case(
         company_id=sess.company_id,
         title=title,
@@ -155,6 +173,22 @@ def update_case(case_id: int):
     if not c:
         return error_response("Case not found", 404)
 
+    # Advocates can only update their own cases
+    if sess.role == "advocate":
+        from src.models.user import User
+        from src.models.advocate import Advocate
+        
+        user = User.query.get(sess.user_id)
+        if not user:
+            return error_response("User not found", 404)
+            
+        advocate = Advocate.query.filter_by(email=user.email, company_id=sess.company_id).first()
+        if not advocate:
+            return error_response("Advocate not found", 404)
+        
+        if c.assigned_advocate_id != advocate.id:
+            return error_response("Advocates can only update their own cases", 403)
+
     payload = request.get_json(silent=True) or {}
 
     if "title" in payload:
@@ -187,6 +221,11 @@ def update_case(case_id: int):
                         aid_int = int(aid)
                     except Exception:
                         return error_response("Invalid assignedAdvocateId")
+                    
+                    # Advocates can only assign cases to themselves
+                    if sess.role == "advocate" and aid_int != c.assigned_advocate_id:
+                        return error_response("Advocates can only assign cases to themselves", 403)
+                    
                     advocate = Advocate.query.filter_by(id=aid_int, company_id=sess.company_id).first()
                     if not advocate:
                         return error_response("Assigned advocate not found", 400)
@@ -238,16 +277,38 @@ def delete_case(case_id: int):
     if not c:
         return error_response("Case not found", 404)
 
-    db.session.delete(c)
+    # Advocates can only delete their own cases
+    if sess.role == "advocate":
+        from src.models.user import User
+        from src.models.advocate import Advocate
+        
+        user = User.query.get(sess.user_id)
+        if not user:
+            return error_response("User not found", 404)
+            
+        advocate = Advocate.query.filter_by(email=user.email, company_id=sess.company_id).first()
+        if not advocate:
+            return error_response("Advocate not found", 404)
+        
+        if c.assigned_advocate_id != advocate.id:
+            return error_response("Advocates can only delete their own cases", 403)
 
-    db.session.add(
-        Notification(
-            company_id=sess.company_id,
-            title="Case deleted",
-            message=f"Case '{c.title}' was deleted.",
-            category="case",
+    try:
+        # Add notification before deletion
+        from src.models.notification import Notification
+        db.session.add(
+            Notification(
+                company_id=sess.company_id,
+                title="Case deleted",
+                message=f"Case '{c.title}' was deleted.",
+                category="case",
+            )
         )
-    )
-
-    db.session.commit()
-    return success_response("Case deleted")
+        
+        # Delete the case - cascade will handle client_links and documents automatically
+        db.session.delete(c)
+        db.session.commit()
+        return success_response("Case deleted")
+    except Exception as e:
+        db.session.rollback()
+        return error_response(f"Failed to delete case: {str(e)}", 500)

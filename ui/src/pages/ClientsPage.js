@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 
 import { ClientsApi } from '../services/api';
+import { getRole } from '../auth';
 import { isValidEmail, isValidPhoneOptional10Digit, required } from '../utils/validation';
 
 export default function ClientsPage() {
@@ -28,6 +29,10 @@ export default function ClientsPage() {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', district: '' });
   const [errors, setErrors] = useState({ name: '', phone: '', email: '', address: '', district: '' });
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, client: null });
+
+  const role = getRole();
+  const canManageClients = role === 'admin';
 
   const validate = () => {
     const next = { name: '', phone: '', email: '', address: '', district: '' };
@@ -46,17 +51,50 @@ export default function ClientsPage() {
     setItems(res.data);
   };
 
+  const handleDeleteClick = (client) => {
+    setDeleteConfirm({ open: true, client });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.client) return;
+    
+    try {
+      await ClientsApi.remove(deleteConfirm.client.id);
+      await load();
+      setStatus({ type: 'success', message: 'Client deleted successfully' });
+      setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+    } catch (error) {
+      console.error('Delete client error:', error);
+      setStatus({ type: 'error', message: error.response?.data?.error || 'Failed to delete client' });
+      setTimeout(() => setStatus({ type: '', message: '' }), 5000);
+    } finally {
+      setDeleteConfirm({ open: false, client: null });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm({ open: false, client: null });
+  };
+
   useEffect(() => {
     load();
   }, []);
 
   return (
     <Stack spacing={2}>
+      {status.message && (
+        <Alert severity={status.type} sx={{ mb: 2 }}>
+          {status.message}
+        </Alert>
+      )}
+      
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h5">Clients</Typography>
-        <Button variant="contained" onClick={() => setOpen(true)}>
-          Add Client
-        </Button>
+        {canManageClients && (
+          <Button variant="contained" onClick={() => setOpen(true)}>
+            Add Client
+          </Button>
+        )}
       </Stack>
 
       <Card>
@@ -81,16 +119,15 @@ export default function ClientsPage() {
                   <TableCell>{c.district || '-'}</TableCell>
                   <TableCell>{(c.cases || []).length}</TableCell>
                   <TableCell align="right">
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={async () => {
-                        await ClientsApi.remove(c.id);
-                        await load();
-                      }}
-                    >
-                      Delete
-                    </Button>
+                    {canManageClients && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(c)}
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -194,6 +231,33 @@ export default function ClientsPage() {
             }}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirm.open} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete client <strong>{deleteConfirm.client?.name}</strong>?
+          </Typography>
+          {deleteConfirm.client && (deleteConfirm.client.cases || []).length > 0 && (
+            <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+              ⚠️ This client is associated with {(deleteConfirm.client.cases || []).length} case(s). 
+              Please remove the client from all cases first before deleting.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+            disabled={deleteConfirm.client && (deleteConfirm.client.cases || []).length > 0}
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
