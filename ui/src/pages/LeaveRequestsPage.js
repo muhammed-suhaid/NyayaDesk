@@ -61,76 +61,81 @@ export default function LeaveRequestsPage() {
 
       <Card>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Submit Leave Request
-          </Typography>
-          {status.message ? <Alert severity={status.type}>{status.message}</Alert> : null}
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label="From"
-                InputLabelProps={{ shrink: true }}
-                value={form.fromDate}
-                onChange={(e) => setForm((s) => ({ ...s, fromDate: e.target.value }))}
-                error={Boolean(errors.fromDate)}
-                helperText={errors.fromDate}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label="To"
-                InputLabelProps={{ shrink: true }}
-                value={form.toDate}
-                onChange={(e) => setForm((s) => ({ ...s, toDate: e.target.value }))}
-                error={Boolean(errors.toDate)}
-                helperText={errors.toDate}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                fullWidth
-                variant="contained"
-                disabled={submitting}
-                onClick={async () => {
-                  setStatus({ type: '', message: '' });
-                  if (submitting) return;
-                  if (!validate()) return;
-                  setSubmitting(true);
-                  try {
-                    await LeaveApi.submit({
-                      fromDate: form.fromDate,
-                      toDate: form.toDate,
-                      reason: form.reason,
-                    });
-                    setForm({ fromDate: '', toDate: '', reason: '' });
-                    setErrors({ fromDate: '', toDate: '', reason: '' });
-                    setStatus({ type: 'success', message: 'Leave request submitted' });
-                    await load();
-                  } catch (e) {
-                    setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to submit leave request' });
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-              >
-                Submit
-              </Button>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Reason"
-                value={form.reason}
-                onChange={(e) => setForm((s) => ({ ...s, reason: e.target.value }))}
-                error={Boolean(errors.reason)}
-                helperText={errors.reason}
-              />
-            </Grid>
-          </Grid>
+          {/* Only show leave request form to non-admin users */}
+          {role !== 'admin' && (
+            <>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                Submit Leave Request
+              </Typography>
+              {status.message ? <Alert severity={status.type}>{status.message}</Alert> : null}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="From"
+                    InputLabelProps={{ shrink: true }}
+                    value={form.fromDate}
+                    onChange={(e) => setForm((s) => ({ ...s, fromDate: e.target.value }))}
+                    error={Boolean(errors.fromDate)}
+                    helperText={errors.fromDate}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="To"
+                    InputLabelProps={{ shrink: true }}
+                    value={form.toDate}
+                    onChange={(e) => setForm((s) => ({ ...s, toDate: e.target.value }))}
+                    error={Boolean(errors.toDate)}
+                    helperText={errors.toDate}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    disabled={submitting}
+                    onClick={async () => {
+                      setStatus({ type: '', message: '' });
+                      if (submitting) return;
+                      if (!validate()) return;
+                      setSubmitting(true);
+                      try {
+                        await LeaveApi.submit({
+                          fromDate: form.fromDate,
+                          toDate: form.toDate,
+                          reason: form.reason,
+                        });
+                        setForm({ fromDate: '', toDate: '', reason: '' });
+                        setErrors({ fromDate: '', toDate: '', reason: '' });
+                        setStatus({ type: 'success', message: 'Leave request submitted' });
+                        await load();
+                      } catch (e) {
+                        setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to submit leave request' });
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                  >
+                    Submit
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Reason"
+                    value={form.reason}
+                    onChange={(e) => setForm((s) => ({ ...s, reason: e.target.value }))}
+                    error={Boolean(errors.reason)}
+                    helperText={errors.reason}
+                  />
+                </Grid>
+              </Grid>
+            </>
+          )}
         </CardContent>
       </Card>
 
