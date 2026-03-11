@@ -15,7 +15,7 @@ import AdvocatesPage from './pages/AdvocatesPage';
 import AttendancePage from './pages/AttendancePage';
 import LeaveRequestsPage from './pages/LeaveRequestsPage';
 import ReportsPage from './pages/ReportsPage';
-import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import { getRole } from './auth';
 
@@ -45,7 +45,14 @@ export default function App() {
                   <Route path="/attendance" element={<AttendancePage />} />
                   <Route path="/leave" element={<LeaveRequestsPage />} />
                   <Route path="/reports" element={<ReportsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route 
+                    path="/settings" 
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                   <Route
                     path="/superadmin"
                     element={

@@ -33,7 +33,12 @@ export const AuthApi = {
 };
 
 export const AdminApi = {
+  listUsers: () => http.get('/admin/users'),
   createUser: (payload) => http.post('/admin/users', payload),
+  updateUser: (id, payload) => http.put(`/admin/users/${id}`, payload),
+  deleteUser: (id) => http.delete(`/admin/users/${id}`),
+  getCompany: () => http.get('/admin/company'),
+  updateCompany: (payload) => http.put('/admin/company', payload),
 };
 
 export const SuperAdminApi = {

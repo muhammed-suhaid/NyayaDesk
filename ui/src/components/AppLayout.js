@@ -95,18 +95,20 @@ export default function AppLayout({ children }) {
             <ListItemText primary={item.label} />
           </ListItemButton>
         ))}
-        <ListItemButton
-          selected={location.pathname.startsWith('/profile')}
-          onClick={() => {
-            navigate('/profile');
-            setMobileOpen(false);
-          }}
-        >
-          <ListItemIcon>
-            <AccountCircleIcon />
-          </ListItemIcon>
-          <ListItemText primary="Profile" />
-        </ListItemButton>
+        {role === 'admin' && (
+          <ListItemButton
+            selected={location.pathname.startsWith('/settings')}
+            onClick={() => {
+              navigate('/settings');
+              setMobileOpen(false);
+            }}
+          >
+            <ListItemIcon>
+              <AccountCircleIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItemButton>
+        )}
       </List>
     </Box>
   );
@@ -145,14 +147,16 @@ export default function AppLayout({ children }) {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <MenuItem
-              onClick={() => {
-                setProfileAnchorEl(null);
-                navigate('/profile');
-              }}
-            >
-              Profile
-            </MenuItem>
+            {role === 'admin' && (
+              <MenuItem
+                onClick={() => {
+                  setProfileAnchorEl(null);
+                  navigate('/settings');
+                }}
+              >
+                Settings
+              </MenuItem>
+            )}
             <MenuItem
               onClick={() => {
                 setProfileAnchorEl(null);
