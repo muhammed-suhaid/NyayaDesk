@@ -17,6 +17,7 @@ from src.routes.leave_requests import leave_bp
 from src.routes.notifications import notifications_bp
 from src.routes.reports import reports_bp
 from src.routes.superadmin import superadmin_bp
+from src.routes.subscription import subscription_bp
 from src.services.seed_service import seed_if_needed
 from src.utils.settings import AppSettings
 
@@ -86,6 +87,7 @@ def create_app() -> Flask:
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(superadmin_bp, url_prefix="/api/superadmin")
+    app.register_blueprint(subscription_bp, url_prefix="/api/subscription")
 
     @app.get("/")
     def index():

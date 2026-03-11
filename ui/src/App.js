@@ -16,6 +16,7 @@ import AttendancePage from './pages/AttendancePage';
 import LeaveRequestsPage from './pages/LeaveRequestsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
+import PaymentPage from './pages/PaymentPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import { getRole } from './auth';
 
@@ -50,6 +51,14 @@ export default function App() {
                     element={
                       <ProtectedRoute allowedRoles={['admin']}>
                         <SettingsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/payment" 
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <PaymentPage />
                       </ProtectedRoute>
                     } 
                   />

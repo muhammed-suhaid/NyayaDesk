@@ -103,4 +103,30 @@ export const ReportsApi = {
   attendance: (params) => http.get('/reports/attendance', { params }),
 };
 
+export const SubscriptionApi = {
+  // GET  /api/subscription
+  getCurrent: () => http.get('/subscription'),
+
+  // GET  /api/subscription/plans
+  getPlans: () => http.get('/subscription/plans'),
+
+  // POST /api/subscription/activate  → body: { planId }  (demo: no real payment)
+  activate: (planId) => http.post('/subscription/activate', { planId }),
+
+  // POST /api/subscription/reset (testing only)
+  reset: () => http.post('/subscription/reset'),
+
+  // POST /api/subscription/cancel
+  cancel: () => http.post('/subscription/cancel'),
+
+  // POST /api/subscription/billing-cycle → body: { cycle }
+  changeBillingCycle: (cycle) => http.post('/subscription/billing-cycle', { cycle }),
+
+  // GET  /api/subscription/invoices
+  getInvoices: () => http.get('/subscription/invoices'),
+
+  // GET  /api/subscription/invoices/:id/download
+  downloadInvoice: (invoiceId) => http.get(`/subscription/invoices/${invoiceId}/download`),
+};
+
 export default http;
