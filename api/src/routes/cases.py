@@ -124,6 +124,8 @@ def list_cases():
     status = request.args.get("status")
     advocate_id = request.args.get("advocateId")
     district = request.args.get("district")
+    client_id = request.args.get("clientId")
+    case_group = request.args.get("caseGroup")
     from_date = request.args.get("from")
     to_date = request.args.get("to")
     hearing_date = request.args.get("hearingDate")
@@ -134,6 +136,10 @@ def list_cases():
         q = q.filter(Case.assigned_advocate_id == int(advocate_id))
     if district:
         q = q.filter(Case.district == district)
+    if case_group:
+        q = q.filter(Case.case_group == case_group)
+    if client_id:
+        q = q.join(CaseClient).filter(CaseClient.client_id == int(client_id))
 
     if hearing_date:
         q = q.filter(Case.next_hearing_date == _parse_date(hearing_date))

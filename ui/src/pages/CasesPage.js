@@ -29,7 +29,7 @@ import { AdvocatesApi, CasesApi, ClientsApi } from '../services/api';
 import { getRole } from '../auth';
 
 const caseGroups = ['Civil', 'Criminal', 'Consumer', 'Family', 'Writ', 'Other'];
-const statuses = ['Open', 'Pending', 'Closed'];
+const statuses = ['Open', 'In Progress', 'Disposed', 'Closed'];
 
 export default function CasesPage() {
   const navigate = useNavigate();
@@ -38,7 +38,13 @@ export default function CasesPage() {
   const [advocates, setAdvocates] = useState([]);
   const [clients, setClients] = useState([]);
 
-  const [filters, setFilters] = useState({ status: '', advocateId: '', district: '' });
+  const [filters, setFilters] = useState({ 
+    status: '', 
+    advocateId: '', 
+    district: '',
+    clientId: '',
+    caseGroup: ''
+  });
 
   const [openCreate, setOpenCreate] = useState(false);
   const [createStatus, setCreateStatus] = useState({ type: '', message: '' });
@@ -111,6 +117,8 @@ export default function CasesPage() {
     if (filters.status) p.status = filters.status;
     if (filters.advocateId) p.advocateId = filters.advocateId;
     if (filters.district) p.district = filters.district;
+    if (filters.clientId) p.clientId = filters.clientId;
+    if (filters.caseGroup) p.caseGroup = filters.caseGroup;
     return p;
   }, [filters]);
 
@@ -143,47 +151,79 @@ export default function CasesPage() {
       <Card>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
+            <Grid item xs={12} sm={6} md={2}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Status</InputLabel>
                 <Select
                   label="Status"
                   value={filters.status}
                   onChange={(e) => setFilters((s) => ({ ...s, status: e.target.value }))}
                 >
-                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="">All Statuses</MenuItem>
                   {statuses.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {s}
-                    </MenuItem>
+                    <MenuItem key={s} value={s}>{s}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
+            <Grid item xs={12} sm={6} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Case Group</InputLabel>
+                <Select
+                  label="Case Group"
+                  value={filters.caseGroup}
+                  onChange={(e) => setFilters((s) => ({ ...s, caseGroup: e.target.value }))}
+                >
+                  <MenuItem value="">All Groups</MenuItem>
+                  {caseGroups.map((g) => (
+                    <MenuItem key={g} value={g}>{g}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={2.5}>
+              <FormControl fullWidth size="small">
                 <InputLabel>Advocate</InputLabel>
                 <Select
                   label="Advocate"
                   value={filters.advocateId}
                   onChange={(e) => setFilters((s) => ({ ...s, advocateId: e.target.value }))}
                 >
-                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="">All Advocates</MenuItem>
                   {advocates.map((a) => (
-                    <MenuItem key={a.id} value={a.id}>
-                      {a.name}
-                    </MenuItem>
+                    <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} sm={6} md={2.5}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Client</InputLabel>
+                <Select
+                  label="Client"
+                  value={filters.clientId}
+                  onChange={(e) => setFilters((s) => ({ ...s, clientId: e.target.value }))}
+                >
+                  <MenuItem value="">All Clients</MenuItem>
+                  {clients.map((c) => (
+                    <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
               <TextField
                 fullWidth
+                size="small"
                 label="District"
                 value={filters.district}
                 onChange={(e) => setFilters((s) => ({ ...s, district: e.target.value }))}
               />
+            </Grid>
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              <Button size="small" onClick={() => setFilters({ status: '', advocateId: '', district: '', clientId: '', caseGroup: '' })}>
+                Clear Filters
+              </Button>
             </Grid>
           </Grid>
         </CardContent>
