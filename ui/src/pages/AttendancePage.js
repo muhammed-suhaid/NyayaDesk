@@ -18,7 +18,10 @@ import {
   InputLabel,
   Box,
   Paper,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 
 import { AttendanceApi, AdvocatesApi } from '../services/api';
 import { getRole } from '../auth';
@@ -133,6 +136,28 @@ export default function AttendancePage() {
     load();
   }, [currentMonth, selectedAdvocate]);
 
+  const handleDownload = async () => {
+    try {
+      const params = { month: getMonthString(currentMonth) };
+      if (selectedAdvocate) params.advocateId = selectedAdvocate;
+      
+      const res = await AttendanceApi.export(params);
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const filename = `attendance_${params.month}.xlsx`;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      setStatus({ type: 'error', message: 'Failed to download attendance report' });
+    }
+  };
+
   return (
     <Stack spacing={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -222,7 +247,7 @@ export default function AttendancePage() {
             <Typography variant="h6">
               {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </Typography>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} alignItems="center">
               <Button 
                 size="small" 
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
@@ -235,6 +260,13 @@ export default function AttendancePage() {
               >
                 Next
               </Button>
+              {canViewAllAttendance && (
+                <Tooltip title="Download CSV Report">
+                  <IconButton color="primary" onClick={handleDownload} size="small" sx={{ ml: 1 }}>
+                    <DownloadIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Stack>
           </Stack>
 

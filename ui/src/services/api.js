@@ -82,6 +82,7 @@ export const AdvocatesApi = {
 export const AttendanceApi = {
   list: (params) => http.get('/attendance', { params }),
   mark: (payload) => http.post('/attendance', payload),
+  export: (params) => http.get('/attendance/export', { params, responseType: 'blob' }),
 };
 
 export const LeaveApi = {
