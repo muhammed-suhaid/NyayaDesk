@@ -24,6 +24,9 @@ def upload_case_document(case_id: int):
     if not case:
         return error_response("Case not found", 404)
 
+    if case.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
+
     if "file" not in request.files:
         return error_response("Missing multipart file field 'file'")
 
@@ -34,6 +37,11 @@ def upload_case_document(case_id: int):
     except ValueError as e:
         return error_response(str(e))
 
+    from src.models.user import User
+    u = User.query.get(sess.user_id)
+    uploader_name = u.name if u else "Unknown"
+    doc_type = request.form.get("type") or "Other"
+
     doc = Document(
         company_id=sess.company_id,
         case_id=case_id,
@@ -41,6 +49,8 @@ def upload_case_document(case_id: int):
         stored_filename=stored_filename,
         mime_type=file.mimetype,
         size_bytes=full_path.stat().st_size,
+        document_type=doc_type,
+        uploaded_by=uploader_name,
     )
 
     db.session.add(doc)
@@ -107,6 +117,10 @@ def delete_case_document(case_id: int, doc_id: int):
     doc = Document.query.filter_by(id=doc_id, case_id=case_id, company_id=sess.company_id).first()
     if not doc:
         return error_response("Document not found", 404)
+
+    case = Case.query.get(case_id)
+    if case and case.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
 
     delete_document_file(current_app.config["UPLOAD_ROOT"], case_id, doc.stored_filename)
 

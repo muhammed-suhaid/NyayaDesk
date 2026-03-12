@@ -54,15 +54,31 @@ export const CasesApi = {
   update: (id, payload) => http.put(`/cases/${id}`, payload),
   remove: (id) => http.delete(`/cases/${id}`),
   listDocuments: (caseId) => http.get(`/cases/${caseId}/documents`),
-  uploadDocument: (caseId, file) => {
+  uploadDocument: (caseId, file, type = 'Other') => {
     const form = new FormData();
     form.append('file', file);
+    if (type) form.append('type', type);
     return http.post(`/cases/${caseId}/upload`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
   deleteDocument: (caseId, docId) => http.delete(`/cases/${caseId}/documents/${docId}`),
-  downloadUrl: (caseId, docId) => `/cases/${caseId}/documents/${docId}/download`,
+  downloadDocument: (caseId, docId) => http.get(`/cases/${caseId}/documents/${docId}/download`, { responseType: 'blob' }),
+  
+  // Hearings
+  addHearing: (caseId, payload) => http.post(`/cases/${caseId}/hearings`, payload),
+  updateHearing: (caseId, hearingId, payload) => http.put(`/cases/${caseId}/hearings/${hearingId}`, payload),
+  deleteHearing: (caseId, hearingId) => http.delete(`/cases/${caseId}/hearings/${hearingId}`),
+
+  // Updates
+  listUpdates: (caseId) => http.get(`/cases/${caseId}/updates`),
+  addUpdate: (caseId, payload) => http.post(`/cases/${caseId}/updates`, payload),
+
+  // Dispose
+  disposeCase: (caseId, payload) => http.put(`/cases/${caseId}/dispose`, payload),
+
+  // Report
+  downloadReport: (caseId) => http.get(`/cases/${caseId}/report`, { responseType: 'blob' }),
 };
 
 export const ClientsApi = {

@@ -23,6 +23,10 @@ class Case(db.Model):
     next_purpose: Mapped[str | None] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(Text)
 
+    disposal_date: Mapped[date | None] = mapped_column(Date)
+    disposal_reason: Mapped[str | None] = mapped_column(Text)
+    outcome: Mapped[str | None] = mapped_column(Text)
+
     assigned_advocate_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("advocates.id"))
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -31,8 +35,10 @@ class Case(db.Model):
     assigned_advocate = relationship("Advocate", back_populates="cases")
     client_links = relationship("CaseClient", back_populates="case", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="case", cascade="all, delete-orphan")
+    hearings = relationship("Hearing", back_populates="case", cascade="all, delete-orphan", order_by="Hearing.hearing_date")
+    updates = relationship("CaseUpdate", back_populates="case", cascade="all, delete-orphan", order_by="desc(CaseUpdate.created_at)")
 
-    def to_dict(self, include_clients: bool = False, include_advocate: bool = False):
+    def to_dict(self, include_clients: bool = False, include_advocate: bool = False, include_details: bool = False):
         data = {
             "id": self.id,
             "companyId": self.company_id,
@@ -47,6 +53,9 @@ class Case(db.Model):
             "currentStatus": self.current_status,
             "nextPurpose": self.next_purpose,
             "description": self.description,
+            "disposalDate": self.disposal_date.isoformat() if self.disposal_date else None,
+            "disposalReason": self.disposal_reason,
+            "outcome": self.outcome,
             "assignedAdvocateId": self.assigned_advocate_id,
             "createdAt": self.created_at.isoformat() + "Z",
             "updatedAt": self.updated_at.isoformat() + "Z",
@@ -57,5 +66,10 @@ class Case(db.Model):
 
         if include_clients:
             data["clients"] = [link.client.to_dict(False) for link in self.client_links]
+
+        if include_details:
+            data["hearings"] = [h.to_dict() for h in self.hearings]
+            data["updates"] = [u.to_dict() for u in self.updates]
+            data["documents"] = [d.to_dict() for d in self.documents]
 
         return data

@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 
 from src.db import db
 from src.models.case import Case
@@ -158,7 +158,7 @@ def get_case(case_id: int):
     c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
     if not c:
         return error_response("Case not found", 404)
-    return c.to_dict(include_clients=True, include_advocate=True)
+    return c.to_dict(include_clients=True, include_advocate=True, include_details=True)
 
 
 @cases_bp.put("/<int:case_id>")
@@ -172,6 +172,9 @@ def update_case(case_id: int):
     c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
     if not c:
         return error_response("Case not found", 404)
+
+    if c.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
 
     # Advocates can only update their own cases
     if sess.role == "advocate":
@@ -312,3 +315,232 @@ def delete_case(case_id: int):
     except Exception as e:
         db.session.rollback()
         return error_response(f"Failed to delete case: {str(e)}", 500)
+
+
+@cases_bp.post("/<int:case_id>/hearings")
+@require_auth
+def add_hearing(case_id: int):
+    sess = current_session()
+    assert sess is not None
+    if sess.role not in ["admin", "advocate"]:
+        return error_response("Unauthorized", 403)
+
+    c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
+    if not c:
+        return error_response("Case not found", 404)
+
+    if c.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
+
+    payload = request.get_json(silent=True) or {}
+    h_date_str = payload.get("hearingDate")
+    if not h_date_str:
+        return error_response("Hearing date is required")
+        
+    try:
+        h_date = datetime.strptime(h_date_str, "%Y-%m-%d").date()
+    except Exception:
+        return error_response("Invalid date format", 400)
+
+    from src.models.hearing import Hearing
+    h = Hearing(
+        company_id=sess.company_id,
+        case_id=c.id,
+        hearing_date=h_date,
+        notes=payload.get("notes"),
+        outcome=payload.get("outcome")
+    )
+    db.session.add(h)
+    
+    # Update case next hearing date if it's the latest
+    if not c.next_hearing_date or h_date > c.next_hearing_date:
+        c.next_hearing_date = h_date
+
+    db.session.commit()
+    return success_response("Hearing added", 201, hearing=h.to_dict())
+
+
+@cases_bp.put("/<int:case_id>/hearings/<int:hearing_id>")
+@require_auth
+def update_hearing(case_id: int, hearing_id: int):
+    sess = current_session()
+    assert sess is not None
+    if sess.role != "admin":
+        return error_response("Only admins can manage hearings", 403)
+
+    from src.models.hearing import Hearing
+    h = Hearing.query.filter_by(id=hearing_id, case_id=case_id, company_id=sess.company_id).first()
+    if not h:
+        return error_response("Hearing not found", 404)
+
+    c = Case.query.get(case_id)
+    if c and c.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
+
+    payload = request.get_json(silent=True) or {}
+    if "hearingDate" in payload:
+        try:
+            h.hearing_date = datetime.strptime(payload["hearingDate"], "%Y-%m-%d").date()
+        except Exception:
+            return error_response("Invalid date format", 400)
+            
+    if "notes" in payload:
+        h.notes = payload["notes"]
+    if "outcome" in payload:
+        h.outcome = payload["outcome"]
+
+    # Re-evaluate case next_hearing_date
+    db.session.commit()
+    
+    # find latest hearing for the case
+    latest = Hearing.query.filter_by(case_id=case_id).order_by(Hearing.hearing_date.desc()).first()
+    c = Case.query.get(case_id)
+    if latest:
+        c.next_hearing_date = latest.hearing_date
+    db.session.commit()
+
+    return success_response("Hearing updated", hearing=h.to_dict())
+
+
+@cases_bp.delete("/<int:case_id>/hearings/<int:hearing_id>")
+@require_auth
+def delete_hearing(case_id: int, hearing_id: int):
+    sess = current_session()
+    assert sess is not None
+    if sess.role != "admin":
+        return error_response("Only admins can manage hearings", 403)
+
+    from src.models.hearing import Hearing
+    h = Hearing.query.filter_by(id=hearing_id, case_id=case_id, company_id=sess.company_id).first()
+    if not h:
+        return error_response("Hearing not found", 404)
+
+    c = Case.query.get(case_id)
+    if c and c.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
+
+    db.session.delete(h)
+    db.session.commit()
+    return success_response("Hearing deleted")
+
+
+@cases_bp.get("/<int:case_id>/updates")
+@require_auth
+def list_updates(case_id: int):
+    sess = current_session()
+    assert sess is not None
+    
+    from src.models.case_update import CaseUpdate
+    updates = CaseUpdate.query.filter_by(case_id=case_id, company_id=sess.company_id).order_by(CaseUpdate.created_at.desc()).all()
+    return [u.to_dict() for u in updates]
+
+
+@cases_bp.post("/<int:case_id>/updates")
+@require_auth
+def add_update(case_id: int):
+    sess = current_session()
+    assert sess is not None
+    
+    c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
+    if not c:
+        return error_response("Case not found", 404)
+
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("updateText") or "").strip()
+    if not text:
+        return error_response("Update text is required", 400)
+
+    if c.current_status in ["Disposed", "Closed"]:
+        return error_response("Case is disposed and cannot be edited", 400)
+
+    from src.models.user import User
+    u = User.query.get(sess.user_id)
+    author_name = u.name if u else "Unknown"
+
+    from src.models.case_update import CaseUpdate
+    update = CaseUpdate(
+        company_id=sess.company_id,
+        case_id=c.id,
+        author_name=author_name,
+        update_text=text
+    )
+    db.session.add(update)
+    db.session.commit()
+
+    return success_response("Update added", 201, update=update.to_dict())
+
+
+@cases_bp.put("/<int:case_id>/dispose")
+@require_auth
+def dispose_case(case_id: int):
+    sess = current_session()
+    assert sess is not None
+    if sess.role != "admin":
+        return error_response("Only admins can dispose cases", 403)
+
+    c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
+    if not c:
+        return error_response("Case not found", 404)
+
+    payload = request.get_json(silent=True) or {}
+    
+    disp_date_str = payload.get("disposalDate")
+    if disp_date_str:
+        try:
+            c.disposal_date = datetime.strptime(disp_date_str, "%Y-%m-%d").date()
+        except:
+            pass
+    
+    if "disposalReason" in payload:
+        c.disposal_reason = payload["disposalReason"]
+        
+    if "outcome" in payload:
+        c.outcome = payload["outcome"]
+        
+    if "status" in payload:
+        c.current_status = payload["status"]
+    else:
+        c.current_status = "Disposed"
+        
+    from src.models.notification import Notification
+    db.session.add(
+        Notification(
+            company_id=sess.company_id,
+            title="Case Disposed",
+            message=f"Case '{c.title}' was marked as {c.current_status}.",
+            category="case",
+        )
+    )
+
+    db.session.commit()
+    return success_response("Case disposed", case=c.to_dict(include_details=True))
+
+
+@cases_bp.get("/<int:case_id>/report")
+@require_auth
+def download_report(case_id: int):
+    sess = current_session()
+    assert sess is not None
+    
+    c = Case.query.filter_by(id=case_id, company_id=sess.company_id).first()
+    if not c:
+        return error_response("Case not found", 404)
+
+    try:
+        from src.reports.case_report import generate_case_report_pdf
+        pdf_buffer = generate_case_report_pdf(c.to_dict(include_advocate=True, include_details=True))
+        
+        clean_num = (c.case_number or "NA").replace("/", "_").replace("\\", "_")
+        filename = f"Case_Report_{clean_num}.pdf"
+        
+        return send_file(
+            pdf_buffer,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        print(tb)
+        return error_response(f"PDF Error: {str(e)}\n{tb}", 500)

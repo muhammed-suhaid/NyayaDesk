@@ -1,10 +1,13 @@
 from src.models.advocate import Advocate
 from src.models.attendance import Attendance
 from src.models.case import Case
+from src.models.case_update import CaseUpdate
 from src.models.case_client import CaseClient
 from src.models.client import Client
 from src.models.company import Company
 from src.models.document import Document
+from src.models.hearing import Hearing
+
 from src.models.leave_request import LeaveRequest
 from src.models.notification import Notification
 from src.models.payment import Payment
@@ -14,10 +17,12 @@ __all__ = [
     "Advocate",
     "Attendance",
     "Case",
+    "CaseUpdate",
     "CaseClient",
     "Client",
     "Company",
     "Document",
+    "Hearing",
     "LeaveRequest",
     "Notification",
     "Payment",

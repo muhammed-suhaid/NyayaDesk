@@ -16,6 +16,10 @@ class Document(db.Model):
     stored_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     mime_type: Mapped[str | None] = mapped_column(String(120))
     size_bytes: Mapped[int | None] = mapped_column(Integer)
+    
+    document_type: Mapped[str | None] = mapped_column(String(50))
+    uploaded_by: Mapped[str | None] = mapped_column(String(200))
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     case = relationship("Case", back_populates="documents")
@@ -29,5 +33,7 @@ class Document(db.Model):
             "storedFilename": self.stored_filename,
             "mimeType": self.mime_type,
             "sizeBytes": self.size_bytes,
+            "documentType": self.document_type,
+            "uploadedBy": self.uploaded_by,
             "createdAt": self.created_at.isoformat() + "Z",
         }
