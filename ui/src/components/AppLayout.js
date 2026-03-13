@@ -13,6 +13,12 @@ import {
   ListItemText,
   Toolbar,
   Typography,
+  Avatar,
+  Stack,
+  alpha,
+  useTheme,
+  Divider,
+  Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -23,27 +29,31 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
 import { NotificationsApi } from '../services/api';
-import { getRole, logout } from '../auth';
+import { getCurrentUser, getRole, logout } from '../auth';
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon />, roles: ['admin', 'advocate'] },
   { label: 'Cases', path: '/cases', icon: <GavelIcon />, roles: ['admin', 'advocate'] },
   { label: 'Clients', path: '/clients', icon: <PeopleIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Advocates', path: '/advocates', icon: <AccountBoxIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Team', path: '/advocates', icon: <AccountBoxIcon />, roles: ['admin', 'advocate'] },
   { label: 'Attendance', path: '/attendance', icon: <EventAvailableIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Leave Requests', path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
+  { label: 'Leave', path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
   { label: 'Reports', path: '/reports', icon: <AssessmentIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Super Admin', path: '/superadmin', icon: <AssessmentIcon />, roles: ['super_admin'] },
+  { label: 'Settings', path: '/settings', icon: <SettingsIcon />, roles: ['admin'] },
+  { label: 'Admin', path: '/superadmin', icon: <CorporateFareIcon />, roles: ['super_admin'] },
 ];
 
 export default function AppLayout({ children }) {
+  const theme = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -53,11 +63,12 @@ export default function AppLayout({ children }) {
   const navigate = useNavigate();
 
   const activePath = useMemo(() => {
-    const item = navItems.find((x) => location.pathname.startsWith(x.path));
+    const item = navItems.find((x) => location.pathname === x.path || location.pathname.startsWith(x.path + '/'));
     return item ? item.path : '';
   }, [location.pathname]);
 
-  const role = useMemo(() => getRole(), []);
+  const user = useMemo(() => getCurrentUser(), []);
+  const role = user?.role;
 
   const visibleNavItems = useMemo(() => {
     return navItems.filter((i) => !i.roles || i.roles.includes(role));
@@ -79,9 +90,17 @@ export default function AppLayout({ children }) {
   }, []);
 
   const drawer = (
-    <Box sx={{ px: 0, py: 1 }}>
-      <Toolbar />
-      <List>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#0f172a' }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Avatar sx={{ bgcolor: 'primary.main', width: 24, height: 24 }}>
+          <GavelIcon sx={{ fontSize: 14, color: '#fff' }} />
+        </Avatar>
+        <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#fff' }}>NyayaDesk</Typography>
+      </Box>
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 1 }} />
+
+      <List sx={{ px: 1, flexGrow: 1 }}>
         {visibleNavItems.map((item) => (
           <ListItemButton
             key={item.path}
@@ -90,123 +109,123 @@ export default function AppLayout({ children }) {
               navigate(item.path);
               setMobileOpen(false);
             }}
+            sx={{ py: 0.5, mb: 0.2, borderRadius: 1 }}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
+            <ListItemIcon sx={{ minWidth: 32, color: activePath === item.path ? 'primary.main' : 'rgba(255,255,255,0.4)' }}>
+              {React.cloneElement(item.icon, { sx: { fontSize: 18 } })}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.label} 
+              primaryTypographyProps={{ sx: { fontWeight: activePath === item.path ? 800 : 500, fontSize: '0.75rem', color: activePath === item.path ? '#fff' : 'rgba(255,255,255,0.6)' } }} 
+            />
           </ListItemButton>
         ))}
-        {role === 'admin' && (
-          <ListItemButton
-            selected={location.pathname.startsWith('/settings')}
-            onClick={() => {
-              navigate('/settings');
-              setMobileOpen(false);
-            }}
-          >
-            <ListItemIcon>
-              <AccountCircleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </ListItemButton>
-        )}
       </List>
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+      <Box sx={{ p: 1.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Avatar sx={{ width: 24, height: 24, fontSize: '0.6rem', fontWeight: 800 }}>{user?.name?.charAt(0).toUpperCase() || '?'}</Avatar>
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.65rem', display: 'block' }}>{user?.name || 'User'}</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{role?.toUpperCase()}</Typography>
+          </Box>
+        </Stack>
+      </Box>
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          zIndex: (theme) => theme.zIndex.drawer - 1
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between', px: 2, minHeight: 48 }}>
           <IconButton
             color="inherit"
             edge="start"
             onClick={() => setMobileOpen(!mobileOpen)}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2, display: { sm: 'none' }, color: 'text.primary' }}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ fontSize: 20 }} />
           </IconButton>
 
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            NyayaDesk - Kerala Legal Case Management
+          <Typography variant="subtitle2" sx={{ fontWeight: 900, color: 'text.primary' }}>
+            {navItems.find(n => n.path === activePath)?.label || 'NyayaDesk'}
           </Typography>
 
-          <IconButton color="inherit" onClick={() => setNotifOpen(true)}>
-            <Badge color="error" badgeContent={unreadCount}>
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-
-          <IconButton color="inherit" onClick={(e) => setProfileAnchorEl(e.currentTarget)}>
-            <AccountCircleIcon />
-          </IconButton>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <IconButton size="small" onClick={() => setNotifOpen(true)}>
+              <Badge color="error" variant="dot" invisible={unreadCount === 0}>
+                <NotificationsIcon sx={{ fontSize: 18 }} />
+              </Badge>
+            </IconButton>
+            <IconButton 
+              size="small"
+              onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+              sx={{ border: '1px solid', borderColor: 'divider' }}
+            >
+              <Avatar sx={{ width: 20, height: 20, fontSize: '0.6rem', fontWeight: 900, bgcolor: 'primary.main' }}>
+                {role?.charAt(0).toUpperCase()}
+              </Avatar>
+            </IconButton>
+          </Stack>
 
           <Menu
             anchorEl={profileAnchorEl}
             open={Boolean(profileAnchorEl)}
             onClose={() => setProfileAnchorEl(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            PaperProps={{ sx: { minWidth: 150, borderRadius: 1, mt: 1 } }}
           >
-            {role === 'admin' && (
-              <MenuItem
-                onClick={() => {
-                  setProfileAnchorEl(null);
-                  navigate('/settings');
-                }}
-              >
-                Settings
-              </MenuItem>
-            )}
-            <MenuItem
+            <MenuItem 
               onClick={() => {
                 setProfileAnchorEl(null);
                 logout();
                 navigate('/login', { replace: true });
               }}
+              sx={{ color: 'error.main', py: 0.5 }}
             >
-              Logout
+              <ListItemIcon sx={{ minWidth: 28 }}><LogoutIcon sx={{ fontSize: 16 }} color="error" /></ListItemIcon>
+              <ListItemText primary="Sign Out" primaryTypographyProps={{ variant: 'caption', fontWeight: 800 }} />
             </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+      <Box component="nav" sx={{ width: { sm: drawerWidth } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
+          sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
         >
           {drawer}
         </Drawer>
         <Drawer
           variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
+          sx={{ display: { xs: 'none', sm: 'block' }, '& .MuiDrawer-paper': { width: drawerWidth, borderRight: 'none' } }}
           open
         >
           {drawer}
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 2, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
+        <Toolbar sx={{ minHeight: '48px !important' }} />
         {children}
       </Box>
 
-      <NotificationPanel
-        open={notifOpen}
-        onClose={() => {
-          setNotifOpen(false);
-          fetchUnread();
-        }}
-      />
+      <NotificationPanel open={notifOpen} onClose={() => { setNotifOpen(false); fetchUnread(); }} />
     </Box>
   );
 }

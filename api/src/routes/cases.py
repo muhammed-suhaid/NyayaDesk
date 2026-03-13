@@ -126,18 +126,35 @@ def list_cases():
     district = request.args.get("district")
     client_id = request.args.get("clientId")
     case_group = request.args.get("caseGroup")
+    case_type = request.args.get("caseType")
+    court_name = request.args.get("courtName")
+    search = request.args.get("search")
     from_date = request.args.get("from")
     to_date = request.args.get("to")
     hearing_date = request.args.get("hearingDate")
+
+    if search:
+        search_query = f"%{search}%"
+        q = q.filter(
+            db.or_(
+                Case.title.ilike(search_query),
+                Case.case_number.ilike(search_query),
+                Case.description.ilike(search_query)
+            )
+        )
 
     if status:
         q = q.filter(Case.current_status == status)
     if advocate_id:
         q = q.filter(Case.assigned_advocate_id == int(advocate_id))
     if district:
-        q = q.filter(Case.district == district)
+        q = q.filter(Case.district.ilike(f"%{district}%"))
     if case_group:
         q = q.filter(Case.case_group == case_group)
+    if case_type:
+        q = q.filter(Case.case_type.ilike(f"%{case_type}%"))
+    if court_name:
+        q = q.filter(Case.court_name.ilike(f"%{court_name}%"))
     if client_id:
         q = q.join(CaseClient).filter(CaseClient.client_id == int(client_id))
 
@@ -149,8 +166,9 @@ def list_cases():
         if to_date:
             q = q.filter(Case.next_hearing_date <= _parse_date(to_date))
 
+    include_clients = request.args.get("includeClients") == "true"
     cases = q.order_by(Case.updated_at.desc()).all()
-    return [c.to_dict(include_advocate=True) for c in cases]
+    return [c.to_dict(include_advocate=True, include_clients=include_clients) for c in cases]
 
 
 @cases_bp.get("/<int:case_id>")

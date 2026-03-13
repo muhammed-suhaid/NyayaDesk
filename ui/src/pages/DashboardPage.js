@@ -7,12 +7,22 @@ import {
   Typography,
   Button,
   Box,
-  CircularProgress
+  CircularProgress,
+  Avatar,
+  IconButton,
+  alpha,
+  useTheme,
+  Divider,
+  Paper
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
 import EventIcon from '@mui/icons-material/Event';
 import SpeedIcon from '@mui/icons-material/Speed';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
 import { NotificationsApi, ReportsApi } from '../services/api';
 import { getRole } from '../auth';
@@ -24,25 +34,27 @@ const SummaryCard = ({ title, value, icon, color }) => (
     boxShadow: 'none', 
     border: '1px solid', 
     borderColor: 'divider', 
-    borderRadius: 4,
-    height: '100%' 
+    borderRadius: 2,
+    height: '100%',
+    transition: 'all 0.2s',
+    '&:hover': { borderColor: color }
   }}>
-    <CardContent sx={{ p: 2.5 }}>
-      <Stack direction="row" spacing={2} alignItems="center">
+    <CardContent sx={{ p: 1.5 }}>
+      <Stack direction="row" spacing={1.5} alignItems="center">
         <Box sx={{ 
-          bgcolor: `${color}11`, 
-          p: 1.5, 
-          borderRadius: 3, 
+          bgcolor: alpha(color, 0.1), 
+          p: 1, 
+          borderRadius: 1.5, 
           display: 'flex', 
-          color: color 
+          color: color,
         }}>
-          {icon}
+          {React.cloneElement(icon, { sx: { fontSize: 18 } })}
         </Box>
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, mb: 0.1, fontSize: '0.6rem', textTransform: 'uppercase' }}>
             {title}
           </Typography>
-          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'text.primary', lineHeight: 1 }}>
             {value}
           </Typography>
         </Box>
@@ -52,6 +64,7 @@ const SummaryCard = ({ title, value, icon, color }) => (
 );
 
 export default function DashboardPage() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -60,7 +73,6 @@ export default function DashboardPage() {
 
   const load = async () => {
     if (role === 'super_admin') return;
-
     try {
       const [notifRes, summaryRes] = await Promise.all([
         NotificationsApi.list({ limit: 5 }),
@@ -75,93 +87,79 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   if (loading && role !== 'super_admin') {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress size={32} />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+        <CircularProgress size={24} thickness={5} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: 'auto', py: 4, px: { xs: 2, md: 4 } }}>
-      <Stack spacing={6}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em', color: 'text.primary' }}>
-            Dashboard
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
-            Analyze your firm's performance and upcoming hearings.
-          </Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 1.5 }}>
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 900, mb: 0.1 }}>Dashboard</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Daily overview of firm metrics and updates.</Typography>
+          </Box>
+          <Button variant="outlined" size="small" onClick={() => navigate('/reports')} sx={{ fontWeight: 800 }}>Reports</Button>
         </Box>
 
       {role === 'super_admin' ? (
-        <Typography variant="body2">Super admin dashboard is available under the Super Admin menu.</Typography>
+        <Paper sx={{ p: 2, borderRadius: 2, textAlign: 'center' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5 }}>Super Admin Portal</Typography>
+          <Button variant="contained" size="small" onClick={() => navigate('/superadmin')}>Open Portal</Button>
+        </Paper>
       ) : (
         <>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <SummaryCard title="Total Cases" value={summary?.totalCases || 0} icon={<GavelIcon />} color="#6366f1" />
+          <Grid container spacing={2}>
+            <Grid item xs={6} md={3}>
+              <SummaryCard title="Total Cases" value={summary?.totalCases || 0} icon={<GavelIcon />} color={theme.palette.primary.main} />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <SummaryCard title="Active Cases" value={summary?.activeCases || 0} icon={<SpeedIcon />} color="#10b981" />
+            <Grid item xs={6} md={3}>
+              <SummaryCard title="Active Cases" value={summary?.activeCases || 0} icon={<TrendingUpIcon />} color={theme.palette.success.main} />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <SummaryCard title="Upcoming Hearings" value={summary?.upcomingHearings || 0} icon={<EventIcon />} color="#f59e0b" />
+            <Grid item xs={6} md={3}>
+              <SummaryCard title="Hearings" value={summary?.upcomingHearings || 0} icon={<EventIcon />} color={theme.palette.warning.main} />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <SummaryCard title="Pending Tasks" value={summary?.pendingTasks || 0} icon={<SpeedIcon />} color="#ef4444" />
+            <Grid item xs={6} md={3}>
+              <SummaryCard title="Pending" value={summary?.pendingTasks || 0} icon={<RecordVoiceOverIcon />} color={theme.palette.error.main} />
             </Grid>
           </Grid>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             <Grid item xs={12} lg={8}>
-              <Stack spacing={3}>
+              <Stack spacing={2}>
                 <UpcomingHearingsCard />
                 <DashboardCharts />
               </Stack>
             </Grid>
-
             <Grid item xs={12} lg={4}>
-              <Card sx={{ 
-                boxShadow: 'none', 
-                border: '1px solid', 
-                borderColor: 'divider', 
-                borderRadius: 4,
-                position: 'sticky',
-                top: 88
-              }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Notifications</Typography>
-                    <Button size="small" variant="text" sx={{ color: 'text.secondary', fontSize: '0.75rem' }} onClick={() => load()}>Refresh</Button>
-                  </Stack>
-
-                  <Stack spacing={2}>
+              <Card sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+                <CardContent sx={{ p: 1.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1.5 }}>Recent Updates</Typography>
+                  <Stack spacing={0.5}>
                     {notifications.map((n) => (
-                      <Box key={n.id} sx={{ 
-                        p: 2, 
-                        bgcolor: n.isRead ? 'transparent' : 'action.hover', 
-                        borderRadius: 3,
-                        border: '1px solid',
-                        borderColor: n.isRead ? 'divider' : 'primary.main',
-                        opacity: n.isRead ? 0.7 : 1
-                      }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '0.8rem' }}>{n.title}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>{n.message}</Typography>
-                        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
-                          {new Date(n.createdAt).toLocaleDateString()}
-                        </Typography>
+                      <Box key={n.id} sx={{ p: 1, borderRadius: 1.5, bgcolor: n.isRead ? 'transparent' : alpha(theme.palette.primary.main, 0.03) }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, display: 'block' }}>{n.title}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.1, fontSize: '0.65rem' }}>{n.message}</Typography>
                       </Box>
                     ))}
-                    {notifications.length === 0 ? (
-                      <Typography variant="caption" color="text.disabled">No new updates found.</Typography>
-                    ) : null}
+                    {notifications.length === 0 && <Typography variant="caption" sx={{ py: 2, textAlign: 'center', display: 'block', opacity: 0.5 }}>No updates</Typography>}
                   </Stack>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Button fullWidth size="small" onClick={() => load()} sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '0.65rem' }}>Refresh</Button>
+                </CardContent>
+              </Card>
+
+              <Card sx={{ mt: 2, borderRadius: 2.5, bgcolor: theme.palette.primary.main, color: '#fff' }}>
+                <CardContent sx={{ p: 1.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 0.5 }}>Support</Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1.5, fontSize: '0.65rem' }}>Need help? Contact our firm support line.</Typography>
+                  <Button variant="contained" color="secondary" size="small" fullWidth sx={{ fontWeight: 900, fontSize: '0.7rem' }}>Contact Help</Button>
                 </CardContent>
               </Card>
             </Grid>

@@ -1,384 +1,164 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
-  Button,
-  Card,
-  CardContent,
-  Grid,
-  Stack,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Box,
-  Paper,
-  IconButton,
-  Tooltip,
+  Alert, Button, Card, CardContent, Grid, Stack, Typography, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, FormControl, InputLabel, Box, IconButton, Tooltip, alpha, useTheme, Avatar, LinearProgress
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import LoginIcon from '@mui/icons-material/Login';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 import { AttendanceApi, AdvocatesApi } from '../services/api';
 import { getRole } from '../auth';
 
+const StatCard = ({ title, value, icon, color }) => (
+  <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+    <CardContent sx={{ p: 1.5 }}>
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box sx={{ bgcolor: alpha(color, 0.1), p: 1, borderRadius: 1.5, display: 'flex', color: color }}>
+          {React.cloneElement(icon, { sx: { fontSize: 18 } })}
+        </Box>
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: '0.6rem', textTransform: 'uppercase' }}>{title}</Typography>
+          <Typography variant="body1" sx={{ fontWeight: 900, lineHeight: 1 }}>{value}</Typography>
+        </Box>
+      </Stack>
+    </CardContent>
+  </Card>
+);
+
 export default function AttendancePage() {
+  const theme = useTheme();
   const [records, setRecords] = useState([]);
-  const [status, setStatus] = useState({ type: '', message: '' });
-  const [form, setForm] = useState({ status: 'Present' });
-  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [advocates, setAdvocates] = useState([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-
+  const [todayRecord, setTodayRecord] = useState(null);
   const role = getRole();
-  const canViewAllAttendance = role === 'admin';
-  const canManageAttendance = role === 'admin';
-
-  // Get days in current month
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
-
-  // Get month string for API
-  const getMonthString = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  };
-
-  // Get attendance status for a specific advocate and day
-  const getAttendanceStatus = (advocateId, day) => {
-    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-    // For advocates (current user), match by any advocate ID since they only see their own records
-    if (advocateId === 'current-user') {
-      const record = records.find(r => r.date === dateStr);
-      // Handle object data structure
-      return record?.status || record?.attendance?.status || null;
-    }
-
-    // For admins, match by specific advocate ID
-    const record = records.find(r =>
-      r.advocateId === advocateId && r.date === dateStr
-    );
-    // Handle object data structure
-    return record?.status || record?.attendance?.status || null;
-  };
-
-  // Get display advocates (either all or current user)
-  const displayAdvocates = useMemo(() => {
-    if (!canViewAllAttendance) {
-      // For advocates, create a virtual advocate entry for themselves
-      // since they might not be in the advocates list
-      return [{
-        id: 'current-user',
-        name: 'My Attendance',
-        isUserAdvocate: true
-      }];
-    }
-    return selectedAdvocate
-      ? advocates.filter(adv => adv.id === parseInt(selectedAdvocate))
-      : advocates;
-  }, [advocates, canViewAllAttendance, selectedAdvocate]);
-
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
-
-  const loadAdvocates = async () => {
-    if (!canViewAllAttendance) return;
-
-    try {
-      const res = await AdvocatesApi.list({});
-      setAdvocates(res.data);
-    } catch (error) {
-      console.error('Failed to load advocates:', error);
-    }
-  };
+  const isAdmin = role === 'admin';
 
   const load = async () => {
     setLoading(true);
     try {
-      const params = { month: getMonthString(currentMonth) };
-      if (canViewAllAttendance && selectedAdvocate) {
-        params.advocateId = selectedAdvocate;
-      }
-      const attRes = await AttendanceApi.list(params);
+      const p = { month: `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}` };
+      if (isAdmin && selectedAdvocate) p.advocateId = selectedAdvocate;
+      const [attRes, advRes] = await Promise.all([
+        AttendanceApi.list(p),
+        isAdmin ? AdvocatesApi.list({}) : Promise.resolve({ data: [] })
+      ]);
       setRecords(attRes.data);
-    } catch {
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
+      if (isAdmin) setAdvocates(advRes.data);
+      const today = new Date().toISOString().split('T')[0];
+      setTodayRecord(attRes.data.find(r => r.day === today || r.date === today) || null);
+    } catch (err) {}
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    loadAdvocates();
-  }, []);
+  useEffect(() => { load(); }, [currentMonth, selectedAdvocate]);
 
-  useEffect(() => {
-    load();
-  }, [currentMonth, selectedAdvocate]);
-
-  const handleDownload = async () => {
-    try {
-      const params = { month: getMonthString(currentMonth) };
-      if (selectedAdvocate) params.advocateId = selectedAdvocate;
-
-      const res = await AttendanceApi.export(params);
-
-      // Create blob link to download
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-
-      const filename = `attendance_${params.month}.xlsx`;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      setStatus({ type: 'error', message: 'Failed to download attendance report' });
-    }
+  const handleMark = async (p) => {
+    try { await AttendanceApi.mark(p); load(); } catch (e) {}
   };
+
+  const stats = useMemo(() => ({
+    present: records.filter(r => r.status === 'present').length,
+    absent: records.filter(r => r.status === 'absent').length,
+    total: records.length
+  }), [records]);
+
+  const days = Array.from({ length: new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate() }, (_, i) => i + 1);
 
   return (
-    <Stack spacing={2}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h5">
-          {canViewAllAttendance ? 'Attendance Management' : 'My Attendance'}
-        </Typography>
-        {canViewAllAttendance && advocates.length > 0 && (
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Filter by Advocate</InputLabel>
-            <Select
-              value={selectedAdvocate}
-              label="Filter by Advocate"
-              onChange={(e) => setSelectedAdvocate(e.target.value)}
-            >
-              <MenuItem value="">All Advocates</MenuItem>
-              {advocates.map((adv) => (
-                <MenuItem key={adv.id} value={adv.id}>
-                  {adv.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-      </Stack>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 1.5 }}>
+      <Stack spacing={2}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>Attendance</Typography>
+            <Typography variant="caption" color="text.secondary">Track and manage staff attendance.</Typography>
+          </Box>
+          {isAdmin && <Button variant="contained" size="small" startIcon={<DownloadIcon />} onClick={async () => {
+            const res = await AttendanceApi.export({ month: `${currentMonth.getFullYear()}-${currentMonth.getMonth()+1}`, advocateId: selectedAdvocate });
+            const url = window.URL.createObjectURL(res.data);
+            const a = document.createElement('a'); a.href = url; a.download = 'Attendance.xlsx'; a.click();
+          }} sx={{ fontWeight: 800 }}>Download</Button>}
+        </Box>
 
-      <Card>
-        <CardContent>
-          {status.message ? <Alert severity={status.type}>{status.message}</Alert> : null}
-
-          {/* Only show attendance marking for advocates */}
-          {role === 'advocate' && (
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={7}>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Button
-                  fullWidth
-                  variant={form.status === 'Present' ? 'contained' : 'outlined'}
-                  onClick={() => setForm({ status: 'Present' })}
-                  disabled={saving || loading}
-                >
-                  Present (Today)
-                </Button>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Button
-                  fullWidth
-                  color="error"
-                  variant={form.status === 'Absent' ? 'contained' : 'outlined'}
-                  onClick={() => setForm({ status: 'Absent' })}
-                  disabled={saving || loading}
-                >
-                  Absent (Today)
-                </Button>
-              </Grid>
+              <Grid item xs={4}><StatCard title="Present" value={stats.present} icon={<CheckCircleOutlineIcon />} color={theme.palette.success.main} /></Grid>
+              <Grid item xs={4}><StatCard title="Absent" value={stats.absent} icon={<CancelOutlinedIcon />} color={theme.palette.error.main} /></Grid>
+              <Grid item xs={4}><StatCard title="Total" value={stats.total} icon={<EventAvailableIcon />} color={theme.palette.primary.main} /></Grid>
+            </Grid>
+          </Grid>
+          {role === 'advocate' && (
+            <Grid item xs={12} md={5}>
+              <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', height: '100%', display: 'flex', alignItems: 'center' }}>
+                <CardContent sx={{ p: 1.5, width: '100%' }}>
+                  <Stack direction="row" spacing={1}>
+                    <Button fullWidth size="small" variant={todayRecord?.checkInTime ? "outlined" : "contained"} color="success" startIcon={<LoginIcon sx={{fontSize:16}}/>} onClick={() => handleMark({status:'present', checkInTime: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})})} disabled={!!todayRecord?.checkInTime}>
+                      {todayRecord?.checkInTime ? `In: ${todayRecord.checkInTime}` : 'Check In'}
+                    </Button>
+                    <Button fullWidth size="small" variant={todayRecord?.checkOutTime ? "outlined" : "contained"} color="primary" startIcon={<LogoutIcon sx={{fontSize:16}}/>} onClick={() => handleMark({status:'present', checkOutTime: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})})} disabled={!todayRecord?.checkInTime || !!todayRecord?.checkOutTime}>
+                      {todayRecord?.checkOutTime ? `Out: ${todayRecord.checkOutTime}` : 'Check Out'}
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
             </Grid>
           )}
+        </Grid>
 
-          {/* Only show attendance marking submit button for advocates */}
-          {role === 'advocate' && (
-            <Button
-              sx={{ mt: 2 }}
-              variant="contained"
-              disabled={saving || loading}
-              onClick={async () => {
-                setStatus({ type: '', message: '' });
-                if (saving) return;
-                setSaving(true);
-                try {
-                  await AttendanceApi.mark({ status: form.status });
-                  setStatus({ type: 'success', message: 'Attendance saved' });
-                  await load();
-                } catch (e) {
-                  setStatus({ type: 'error', message: e?.response?.data?.error || 'Unable to save attendance' });
-                } finally {
-                  setSaving(false);
-                }
-              }}
-            >
-              {saving ? 'Saving...' : 'Mark Attendance'}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography variant="h6">
-              {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </Typography>
+        <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+          <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                size="small"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-              >
-                Previous
-              </Button>
-              <Button
-                size="small"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-              >
-                Next
-              </Button>
-              {canViewAllAttendance && (
-                <Tooltip title="Download CSV Report">
-                  <IconButton color="primary" onClick={handleDownload} size="small" sx={{ ml: 1 }}>
-                    <DownloadIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
+              <IconButton size="small" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}><ChevronLeftIcon sx={{fontSize:16}}/></IconButton>
+              <Typography variant="caption" sx={{ fontWeight: 900 }}>{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</Typography>
+              <IconButton size="small" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}><ChevronRightIcon sx={{fontSize:16}}/></IconButton>
             </Stack>
-          </Stack>
-
-          {/* Calendar Grid */}
-          <Box sx={{ overflowX: 'auto' }}>
-            <Paper sx={{ p: 2, minWidth: 1000 }}>
-              {/* Attendance Rows */}
-              {displayAdvocates.map(advocate => (
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, minHeight: 45 }} key={advocate.id}>
-                  {/* Advocate Name */}
-                  <Box sx={{
-                    width: 150,
-                    minWidth: 150,
-                    pr: 2,
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
-                    <Typography variant="body2" fontWeight="medium" noWrap>
-                      {advocate.name}
-                    </Typography>
-                  </Box>
-
-                  {/* Attendance Days */}
-                  <Box sx={{ display: 'flex', flex: 1 }}>
-                    {getDaysInMonth(currentMonth).map(day => {
-                      const status = getAttendanceStatus(advocate.id, day);
-                      const isToday = day === new Date().getDate() &&
-                        currentMonth.getMonth() === new Date().getMonth() &&
-                        currentMonth.getFullYear() === new Date().getFullYear();
-
-                      // Debug: Log the status for this day
-                      console.log(`Day ${day} status:`, status, 'for advocate:', advocate.id);
-
-                      let bgColor = 'transparent';
-                      let textColor = '#666666';
-
-                      if (status === 'Present' || status === 'present') {
-                        bgColor = '#2e7d32';
-                        textColor = '#ffffff';
-                      } else if (status === 'Absent' || status === 'absent') {
-                        bgColor = '#d32f2f';
-                        textColor = '#ffffff';
-                      }
-
-                      return (
-                        <Box
-                          key={day}
-                          sx={{
-                            width: 35,
-                            minWidth: 35,
-                            height: 35,
-                            margin: '2px',
-                            borderRadius: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.65rem',
-                            fontWeight: 'bold',
-                            border: isToday ? '2px solid' : '1px solid',
-                            borderColor: isToday ? '#1976d2' : '#d0d0d0',
-                            backgroundColor: bgColor,
-                            color: textColor,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              backgroundColor: (status === 'Present' || status === 'present') ? '#1b5e20' :
-                                (status === 'Absent' || status === 'absent') ? '#c62828' : '#f5f5f5',
-                              transform: 'scale(1.1)',
-                              zIndex: 1
-                            }
-                          }}
-                          title={`${advocate.name} - Day ${day}: ${status || 'Not marked'}`}
-                        >
-                          {day}
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </Box>
-              ))}
-
-              {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <Typography>Loading attendance data...</Typography>
-                </Box>
-              )}
-
-              {!loading && displayAdvocates.length === 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <Typography>No advocates to display.</Typography>
-                </Box>
-              )}
-            </Paper>
+            {isAdmin && (
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel sx={{fontSize:'0.7rem'}}>Staff</InputLabel>
+                <Select value={selectedAdvocate} label="Staff" onChange={e => setSelectedAdvocate(e.target.value)} sx={{fontSize:'0.7rem'}}>
+                  <MenuItem value="">All Members</MenuItem>
+                  {advocates.map(a => <MenuItem key={a.id} value={a.id} sx={{fontSize:'0.7rem'}}>{a.name}</MenuItem>)}
+                </Select>
+              </FormControl>
+            )}
           </Box>
-
-          {/* Legend */}
-          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 20, height: 20, backgroundColor: 'success.main', borderRadius: 1 }} />
-              <Typography variant="caption">Present</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 20, height: 20, backgroundColor: 'error.main', borderRadius: 1 }} />
-              <Typography variant="caption">Absent</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 20, height: 20, border: '1px solid grey.300', borderRadius: 1 }} />
-              <Typography variant="caption">Not Marked</Typography>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Stack>
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  <TableCell sx={{ fontWeight: 900, fontSize: '0.6rem', position: 'sticky', left:0, bgcolor: 'action.hover', zIndex: 5 }}>Staff</TableCell>
+                  {days.map(d => <TableCell key={d} align="center" sx={{ fontWeight: 900, fontSize: '0.6rem', minWidth: 24 }}>{d}</TableCell>)}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading && <TableRow><TableCell colSpan={32}><LinearProgress sx={{height:1}}/></TableCell></TableRow>}
+                {(isAdmin ? (selectedAdvocate ? advocates.filter(a=>a.id==selectedAdvocate) : advocates) : [{id:'me', name:'My Activity'}]).map(adv => (
+                  <TableRow key={adv.id} hover>
+                    <TableCell sx={{ position: 'sticky', left: 0, bgcolor: 'background.paper', zIndex: 4, fontWeight: 800, fontSize: '0.7rem' }}>{adv.name}</TableCell>
+                    {days.map(d => {
+                       const date = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                       const r = records.find(x => x.day === date || x.date === date);
+                       return (
+                         <TableCell key={d} align="center" sx={{ p: 0.5, borderLeft: '1px solid', borderColor: 'divider' }}>
+                           {r?.status === 'present' ? <CheckCircleOutlineIcon sx={{ color: 'success.main', fontSize: 14 }} /> : r?.status === 'absent' ? <CancelOutlinedIcon sx={{ color: 'error.main', fontSize: 14 }} /> : <Box sx={{ width: 4, height: 4, bgcolor: 'divider', borderRadius: '50%', mx:'auto' }} />}
+                         </TableCell>
+                       );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+        </Card>
+      </Stack>
+    </Box>
   );
 }
