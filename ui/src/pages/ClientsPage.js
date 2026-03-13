@@ -57,7 +57,7 @@ export default function ClientsPage() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm.client) return;
-    
+
     try {
       await ClientsApi.remove(deleteConfirm.client.id);
       await load();
@@ -87,7 +87,7 @@ export default function ClientsPage() {
           {status.message}
         </Alert>
       )}
-      
+
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h5">Clients</Typography>
         {canManageClients && (
@@ -244,16 +244,16 @@ export default function ClientsPage() {
           </Typography>
           {deleteConfirm.client && (deleteConfirm.client.cases || []).length > 0 && (
             <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
-              ⚠️ This client is associated with {(deleteConfirm.client.cases || []).length} case(s). 
+              ⚠️ This client is associated with {(deleteConfirm.client.cases || []).length} case(s).
               Please remove the client from all cases first before deleting.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             variant="contained"
             disabled={deleteConfirm.client && (deleteConfirm.client.cases || []).length > 0}
           >

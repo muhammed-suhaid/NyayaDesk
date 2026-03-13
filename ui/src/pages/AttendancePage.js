@@ -47,7 +47,7 @@ export default function AttendancePage() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    
+
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
 
@@ -61,16 +61,16 @@ export default function AttendancePage() {
   // Get attendance status for a specific advocate and day
   const getAttendanceStatus = (advocateId, day) => {
     const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    
+
     // For advocates (current user), match by any advocate ID since they only see their own records
     if (advocateId === 'current-user') {
       const record = records.find(r => r.date === dateStr);
       // Handle object data structure
       return record?.status || record?.attendance?.status || null;
     }
-    
+
     // For admins, match by specific advocate ID
-    const record = records.find(r => 
+    const record = records.find(r =>
       r.advocateId === advocateId && r.date === dateStr
     );
     // Handle object data structure
@@ -88,7 +88,7 @@ export default function AttendancePage() {
         isUserAdvocate: true
       }];
     }
-    return selectedAdvocate 
+    return selectedAdvocate
       ? advocates.filter(adv => adv.id === parseInt(selectedAdvocate))
       : advocates;
   }, [advocates, canViewAllAttendance, selectedAdvocate]);
@@ -103,7 +103,7 @@ export default function AttendancePage() {
 
   const loadAdvocates = async () => {
     if (!canViewAllAttendance) return;
-    
+
     try {
       const res = await AdvocatesApi.list({});
       setAdvocates(res.data);
@@ -140,14 +140,14 @@ export default function AttendancePage() {
     try {
       const params = { month: getMonthString(currentMonth) };
       if (selectedAdvocate) params.advocateId = selectedAdvocate;
-      
+
       const res = await AttendanceApi.export(params);
-      
+
       // Create blob link to download
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const filename = `attendance_${params.month}.xlsx`;
       link.setAttribute('download', filename);
       document.body.appendChild(link);
@@ -186,7 +186,7 @@ export default function AttendancePage() {
       <Card>
         <CardContent>
           {status.message ? <Alert severity={status.type}>{status.message}</Alert> : null}
-          
+
           {/* Only show attendance marking for advocates */}
           {role === 'advocate' && (
             <Grid container spacing={2}>
@@ -248,14 +248,14 @@ export default function AttendancePage() {
               {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
               >
                 Previous
               </Button>
-              <Button 
-                size="small" 
+              <Button
+                size="small"
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
               >
                 Next
@@ -277,9 +277,9 @@ export default function AttendancePage() {
               {displayAdvocates.map(advocate => (
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, minHeight: 45 }} key={advocate.id}>
                   {/* Advocate Name */}
-                  <Box sx={{ 
-                    width: 150, 
-                    minWidth: 150, 
+                  <Box sx={{
+                    width: 150,
+                    minWidth: 150,
                     pr: 2,
                     display: 'flex',
                     alignItems: 'center'
@@ -293,16 +293,16 @@ export default function AttendancePage() {
                   <Box sx={{ display: 'flex', flex: 1 }}>
                     {getDaysInMonth(currentMonth).map(day => {
                       const status = getAttendanceStatus(advocate.id, day);
-                      const isToday = day === new Date().getDate() && 
-                                     currentMonth.getMonth() === new Date().getMonth() && 
-                                     currentMonth.getFullYear() === new Date().getFullYear();
-                      
+                      const isToday = day === new Date().getDate() &&
+                        currentMonth.getMonth() === new Date().getMonth() &&
+                        currentMonth.getFullYear() === new Date().getFullYear();
+
                       // Debug: Log the status for this day
                       console.log(`Day ${day} status:`, status, 'for advocate:', advocate.id);
-                      
+
                       let bgColor = 'transparent';
                       let textColor = '#666666';
-                      
+
                       if (status === 'Present' || status === 'present') {
                         bgColor = '#2e7d32';
                         textColor = '#ffffff';
@@ -310,7 +310,7 @@ export default function AttendancePage() {
                         bgColor = '#d32f2f';
                         textColor = '#ffffff';
                       }
-                      
+
                       return (
                         <Box
                           key={day}
@@ -332,8 +332,8 @@ export default function AttendancePage() {
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                             '&:hover': {
-                              backgroundColor: (status === 'Present' || status === 'present') ? '#1b5e20' : 
-                                             (status === 'Absent' || status === 'absent') ? '#c62828' : '#f5f5f5',
+                              backgroundColor: (status === 'Present' || status === 'present') ? '#1b5e20' :
+                                (status === 'Absent' || status === 'absent') ? '#c62828' : '#f5f5f5',
                               transform: 'scale(1.1)',
                               zIndex: 1
                             }

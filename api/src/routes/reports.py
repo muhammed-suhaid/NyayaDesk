@@ -48,7 +48,21 @@ def cases_by_status():
         .group_by(Case.current_status)
         .all()
     )
-    return [{"status": r[0] or "Unknown", "count": r[1]} for r in rows]
+    
+    counts = {r[0]: r[1] for r in rows if r[0]}
+    standard_statuses = ["Open", "Closed", "Disposed", "Pending", "Stayed"]
+    
+    result = []
+    seen = set()
+    for status in standard_statuses:
+        result.append({"status": status, "count": counts.get(status, 0)})
+        seen.add(status)
+        
+    for status, count in counts.items():
+        if status not in seen:
+            result.append({"status": status, "count": count})
+            
+    return result
 
 
 @reports_bp.get("/cases-by-group")
@@ -65,7 +79,21 @@ def cases_by_group():
         .group_by(Case.case_group)
         .all()
     )
-    return [{"group": r[0] or "Other", "count": r[1]} for r in rows]
+    
+    counts = {r[0]: r[1] for r in rows if r[0]}
+    standard_groups = ["Criminal", "Civil", "Family", "Labor", "Tax", "Traffic"]
+    
+    result = []
+    seen = set()
+    for group in standard_groups:
+        result.append({"group": group, "count": counts.get(group, 0)})
+        seen.add(group)
+        
+    for group, count in counts.items():
+        if group not in seen:
+            result.append({"group": group, "count": count})
+            
+    return result
 
 
 @reports_bp.get("/case-trends")

@@ -71,7 +71,7 @@ export default function AdvocatesPage() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm.advocate) return;
-    
+
     try {
       await AdvocatesApi.remove(deleteConfirm.advocate.id);
       await load();
@@ -101,7 +101,7 @@ export default function AdvocatesPage() {
           {status.message}
         </Alert>
       )}
-      
+
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h5">Advocates</Typography>
         {canManageUsers && (
@@ -275,16 +275,16 @@ export default function AdvocatesPage() {
           </Typography>
           {deleteConfirm.advocate && deleteConfirm.advocate.openCaseCount > 0 && (
             <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
-              ⚠️ This advocate is assigned to {deleteConfirm.advocate.openCaseCount} case(s). 
+              ⚠️ This advocate is assigned to {deleteConfirm.advocate.openCaseCount} case(s).
               Please reassign all cases to other advocates first before deleting.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             variant="contained"
             disabled={deleteConfirm.advocate && deleteConfirm.advocate.openCaseCount > 0}
           >
