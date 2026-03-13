@@ -58,6 +58,7 @@ def submit_leave_request():
         advocate_id=advocate.id,
         start_date=start_date,
         end_date=end_date,
+        leave_type=payload.get("leaveType") or "Casual",
         reason=reason,
         status="pending",
     )

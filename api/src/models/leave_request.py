@@ -14,6 +14,7 @@ class LeaveRequest(db.Model):
     advocate_id: Mapped[int] = mapped_column(Integer, ForeignKey("advocates.id"), nullable=False)
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    leave_type: Mapped[str] = mapped_column(String(50), default="Casual", nullable=False)
     reason: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Enum("pending", "approved", "rejected", name="leave_status"), default="pending", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -28,6 +29,7 @@ class LeaveRequest(db.Model):
             "advocateName": self.advocate.name if self.advocate else None,
             "startDate": self.start_date.isoformat(),
             "endDate": self.end_date.isoformat(),
+            "leaveType": self.leave_type,
             "reason": self.reason,
             "status": self.status,
             "createdAt": self.created_at.isoformat() + "Z",
