@@ -81,6 +81,10 @@ export const CasesApi = {
   downloadReport: (caseId) => http.get(`/cases/${caseId}/report`, { responseType: 'blob' }),
 };
 
+export const HearingsApi = {
+  getUpcoming: () => http.get('/hearings/upcoming'),
+};
+
 export const ClientsApi = {
   list: (params) => http.get('/clients', { params }),
   create: (payload) => http.post('/clients', payload),
@@ -114,6 +118,10 @@ export const NotificationsApi = {
 };
 
 export const ReportsApi = {
+  getSummary: () => http.get('/reports/summary'),
+  casesByStatus: () => http.get('/reports/cases-by-status'),
+  casesByGroup: () => http.get('/reports/cases-by-group'),
+  caseTrends: () => http.get('/reports/case-trends'),
   casesByDistrict: () => http.get('/reports/cases-by-district'),
   casesByAdvocate: () => http.get('/reports/cases-by-advocate'),
   upcomingHearings: (params) => http.get('/reports/upcoming-hearings', { params }),

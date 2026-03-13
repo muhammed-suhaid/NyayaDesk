@@ -5,135 +5,170 @@ import {
   Grid,
   Stack,
   Typography,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Button,
+  Box,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import GavelIcon from '@mui/icons-material/Gavel';
+import EventIcon from '@mui/icons-material/Event';
+import SpeedIcon from '@mui/icons-material/Speed';
 
-import { CasesApi, NotificationsApi } from '../services/api';
+import { NotificationsApi, ReportsApi } from '../services/api';
 import { getRole } from '../auth';
+import UpcomingHearingsCard from '../components/UpcomingHearingsCard';
+import DashboardCharts from '../components/DashboardCharts';
+
+const SummaryCard = ({ title, value, icon, color }) => (
+  <Card sx={{ 
+    boxShadow: 'none', 
+    border: '1px solid', 
+    borderColor: 'divider', 
+    borderRadius: 4,
+    height: '100%' 
+  }}>
+    <CardContent sx={{ p: 2.5 }}>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box sx={{ 
+          bgcolor: `${color}11`, 
+          p: 1.5, 
+          borderRadius: 3, 
+          display: 'flex', 
+          color: color 
+        }}>
+          {icon}
+        </Box>
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block' }}>
+            {title}
+          </Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+            {value}
+          </Typography>
+        </Box>
+      </Stack>
+    </CardContent>
+  </Card>
+);
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [todayCases, setTodayCases] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
   const role = useMemo(() => getRole(), []);
 
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
-
   const load = async () => {
-    if (role === 'super_admin') {
-      setTodayCases([]);
-      setNotifications([]);
-      return;
-    }
+    if (role === 'super_admin') return;
 
     try {
-      const [casesRes, notifRes] = await Promise.all([
-        CasesApi.list({ hearingDate: todayStr }),
-        NotificationsApi.list({ limit: 8 }),
+      const [notifRes, summaryRes] = await Promise.all([
+        NotificationsApi.list({ limit: 5 }),
+        ReportsApi.getSummary()
       ]);
-      setTodayCases(casesRes.data);
       setNotifications(notifRes.data.data);
-    } catch {
-      setTodayCases([]);
-      setNotifications([]);
+      setSummary(summaryRes.data);
+    } catch (err) {
+      console.error('Dashboard load error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     load();
-  }, [todayStr]);
+  }, []);
+
+  if (loading && role !== 'super_admin') {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress size={32} />
+      </Box>
+    );
+  }
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h5">Dashboard</Typography>
+    <Box sx={{ maxWidth: 1400, mx: 'auto', py: 4, px: { xs: 2, md: 4 } }}>
+      <Stack spacing={6}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em', color: 'text.primary' }}>
+            Dashboard
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+            Analyze your firm's performance and upcoming hearings.
+          </Typography>
+        </Box>
 
       {role === 'super_admin' ? (
         <Typography variant="body2">Super admin dashboard is available under the Super Admin menu.</Typography>
-      ) : null}
+      ) : (
+        <>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <SummaryCard title="Total Cases" value={summary?.totalCases || 0} icon={<GavelIcon />} color="#6366f1" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <SummaryCard title="Active Cases" value={summary?.activeCases || 0} icon={<SpeedIcon />} color="#10b981" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <SummaryCard title="Upcoming Hearings" value={summary?.upcomingHearings || 0} icon={<EventIcon />} color="#f59e0b" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <SummaryCard title="Pending Tasks" value={summary?.pendingTasks || 0} icon={<SpeedIcon />} color="#ef4444" />
+            </Grid>
+          </Grid>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                <Typography variant="h6">Today’s Hearings</Typography>
-                <Chip label={todayStr} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} lg={8}>
+              <Stack spacing={3}>
+                <UpcomingHearingsCard />
+                <DashboardCharts />
               </Stack>
+            </Grid>
 
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Case</TableCell>
-                    <TableCell>Court</TableCell>
-                    <TableCell>Advocate</TableCell>
-                    <TableCell>Purpose</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {todayCases.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>{c.title}</TableCell>
-                      <TableCell>{c.courtName || '-'}</TableCell>
-                      <TableCell>{c.assignedAdvocate?.name || '-'}</TableCell>
-                      <TableCell>{c.nextPurpose || '-'}</TableCell>
-                      <TableCell align="right">
-                        <Button size="small" onClick={() => navigate(`/cases/${c.id}`)}>
-                          Open
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {todayCases.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5}>No hearings scheduled for today.</TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </Grid>
+            <Grid item xs={12} lg={4}>
+              <Card sx={{ 
+                boxShadow: 'none', 
+                border: '1px solid', 
+                borderColor: 'divider', 
+                borderRadius: 4,
+                position: 'sticky',
+                top: 88
+              }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Notifications</Typography>
+                    <Button size="small" variant="text" sx={{ color: 'text.secondary', fontSize: '0.75rem' }} onClick={() => load()}>Refresh</Button>
+                  </Stack>
 
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                <Typography variant="h6">Recent Updates</Typography>
-                <Button size="small" onClick={() => navigate('/')}>Refresh</Button>
-              </Stack>
-
-              <Stack spacing={1}>
-                {notifications.map((n) => (
-                  <Card key={n.id} variant="outlined" sx={{ p: 1, bgcolor: n.isRead ? 'transparent' : 'action.selected' }}>
-                    <Typography variant="subtitle2">{n.title}</Typography>
-                    {n.message ? <Typography variant="body2">{n.message}</Typography> : null}
-                    <Typography variant="caption" color="text.secondary">
-                      {new Date(n.createdAt).toLocaleString()}
-                    </Typography>
-                  </Card>
-                ))}
-                {notifications.length === 0 ? (
-                  <Typography variant="body2">No notifications.</Typography>
-                ) : null}
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Stack>
+                  <Stack spacing={2}>
+                    {notifications.map((n) => (
+                      <Box key={n.id} sx={{ 
+                        p: 2, 
+                        bgcolor: n.isRead ? 'transparent' : 'action.hover', 
+                        borderRadius: 3,
+                        border: '1px solid',
+                        borderColor: n.isRead ? 'divider' : 'primary.main',
+                        opacity: n.isRead ? 0.7 : 1
+                      }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '0.8rem' }}>{n.title}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>{n.message}</Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
+                          {new Date(n.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    ))}
+                    {notifications.length === 0 ? (
+                      <Typography variant="caption" color="text.disabled">No new updates found.</Typography>
+                    ) : null}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </>
+      )}
+      </Stack>
+    </Box>
   );
 }
