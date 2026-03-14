@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogActions
 } from '@mui/material';
+import { required, isValidEmail, isValidPhoneOptional10Digit } from '../utils/validation';
 
 import { AdminApi } from '../services/api';
 
@@ -27,6 +28,7 @@ export default function CompanySettings() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: '', message: '' });
 
   const fetchCompany = async () => {
@@ -56,10 +58,13 @@ export default function CompanySettings() {
 
   const handleSave = async () => {
     setStatus({ type: '', message: '' });
-    if (!name.trim()) {
-      setStatus({ type: 'error', message: 'Company name is required' });
-      return;
-    }
+    const next = {};
+    if (!required(name)) next.name = 'Company name is required';
+    if (email && !isValidEmail(email)) next.email = 'Enter a valid email';
+    if (!isValidPhoneOptional10Digit(phone)) next.phone = 'Enter a valid 10-digit phone number';
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
 
     try {
       await AdminApi.updateCompany({ name, email, phone, address });
@@ -115,6 +120,8 @@ export default function CompanySettings() {
                 label="Company Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                error={!!errors.name}
+                helperText={errors.name}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -124,6 +131,8 @@ export default function CompanySettings() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                error={!!errors.email}
+                helperText={errors.email}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -132,6 +141,8 @@ export default function CompanySettings() {
                 label="Phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                error={!!errors.phone}
+                helperText={errors.phone}
               />
             </Grid>
             <Grid item xs={12} md={12}>

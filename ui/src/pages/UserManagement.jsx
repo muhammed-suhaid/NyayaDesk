@@ -220,7 +220,7 @@ export default function UserManagement() {
                 fullWidth
                 required
                 label="Phone"
-                value={form.phone}
+                value={form.phone || ''}
                 onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
                 error={Boolean(errors.phone)}
                 helperText={errors.phone}
@@ -232,7 +232,7 @@ export default function UserManagement() {
                 required={!editUser}
                 type="password"
                 label={editUser ? "New Password (optional)" : "Password"}
-                value={form.password}
+                value={form.password || ''}
                 onChange={(e) => setForm((s) => ({ ...s, password: e.target.value }))}
                 error={Boolean(errors.password)}
                 helperText={errors.password}

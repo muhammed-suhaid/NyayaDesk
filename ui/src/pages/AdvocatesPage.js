@@ -124,9 +124,9 @@ export default function AdvocatesPage() {
         <DialogTitle sx={{ fontWeight: 900 }}>{editId ? 'Edit Staff' : 'Add Staff'}</DialogTitle>
         <DialogContent dividers sx={{ py: 2 }}>
           <Stack spacing={2}>
-            <TextField fullWidth label="Name" size="small" value={form.name || ''} onChange={e => setForm({...form, name: e.target.value})} error={!!errors.name} />
-            <TextField fullWidth label="Email" size="small" value={form.email || ''} onChange={e => setForm({...form, email: e.target.value})} error={!!errors.email} />
-            <TextField fullWidth label="Phone" size="small" value={form.phone || ''} onChange={e => setForm({...form, phone: e.target.value})} error={!!errors.phone} />
+            <TextField fullWidth label="Name" size="small" value={form.name || ''} onChange={e => setForm({...form, name: e.target.value})} error={!!errors.name} helperText={errors.name} />
+            <TextField fullWidth label="Email" size="small" value={form.email || ''} onChange={e => setForm({...form, email: e.target.value})} error={!!errors.email} helperText={errors.email} />
+            <TextField fullWidth label="Phone" size="small" value={form.phone || ''} onChange={e => setForm({...form, phone: e.target.value})} error={!!errors.phone} helperText={errors.phone} />
             <TextField 
               fullWidth 
               label={editId ? "New Password (optional)" : "Password"} 
@@ -135,6 +135,7 @@ export default function AdvocatesPage() {
               value={form.password || ''} 
               onChange={e => setForm({...form, password: e.target.value})} 
               error={!!errors.password} 
+              helperText={errors.password}
               placeholder={editId ? "Leave blank to keep current" : ""}
             />
             <Grid container spacing={2}>

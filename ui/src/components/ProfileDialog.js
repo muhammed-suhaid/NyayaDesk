@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { AuthApi } from '../services/api';
 import { getCurrentUser, updateProfile as updateLocalProfile } from '../auth';
+import { required, isValidPhoneRequired10Digit, passwordMinLen } from '../utils/validation';
 
 export default function ProfileDialog({ open, onClose }) {
   const user = getCurrentUser();
@@ -27,6 +28,7 @@ export default function ProfileDialog({ open, onClose }) {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
@@ -46,11 +48,27 @@ export default function ProfileDialog({ open, onClose }) {
     }
   }, [open]);
 
-  const handleSubmit = async () => {
-    if (form.password && form.password !== form.confirmPassword) {
-      return setError('Passwords do not match');
+  const validate = () => {
+    const next = {};
+    if (!required(form.name)) next.name = 'Full name is required';
+    if (!isValidPhoneRequired10Digit(form.phone)) next.phone = 'Enter a valid 10-digit phone number';
+    
+    if (user?.role === 'advocate' && !required(form.barCouncilNumber)) {
+      next.barCouncilNumber = 'Bar Council Number is required';
     }
 
+    if (form.password) {
+      if (!passwordMinLen(form.password, 6)) next.password = 'Password must be at least 6 characters';
+      if (form.password !== form.confirmPassword) next.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    
     setLoading(true);
     setError(null);
     try {
@@ -100,6 +118,8 @@ export default function ProfileDialog({ open, onClose }) {
               size="small"
               value={form.name || ''}
               onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+              error={!!errors.name}
+              helperText={errors.name}
             />
 
             <TextField
@@ -108,6 +128,8 @@ export default function ProfileDialog({ open, onClose }) {
               size="small"
               value={form.phone || ''}
               onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
+              error={!!errors.phone}
+              helperText={errors.phone}
             />
 
             {user?.role === 'advocate' && (
@@ -117,6 +139,8 @@ export default function ProfileDialog({ open, onClose }) {
                 size="small"
                 value={form.barCouncilNumber || ''}
                 onChange={(e) => setForm(prev => ({ ...prev, barCouncilNumber: e.target.value }))}
+                error={!!errors.barCouncilNumber}
+                helperText={errors.barCouncilNumber}
               />
             )}
 
@@ -134,6 +158,8 @@ export default function ProfileDialog({ open, onClose }) {
               placeholder="Leave blank to keep current"
               value={form.password || ''}
               onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+              error={!!errors.password}
+              helperText={errors.password}
             />
 
             <TextField
@@ -143,6 +169,8 @@ export default function ProfileDialog({ open, onClose }) {
               size="small"
               value={form.confirmPassword || ''}
               onChange={(e) => setForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
             />
           </Stack>
         </DialogContent>

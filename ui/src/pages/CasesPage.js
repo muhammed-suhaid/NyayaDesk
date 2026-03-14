@@ -42,6 +42,7 @@ import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 
 import { AdvocatesApi, CasesApi, ClientsApi } from '../services/api';
 import { getRole } from '../auth';
+import { required } from '../utils/validation';
 
 const CASE_GROUPS = ['Civil', 'Criminal', 'Consumer', 'Family', 'Writ', 'Other'];
 const STATUSES = ['Open', 'In Progress', 'Disposed', 'Closed'];
@@ -284,6 +285,7 @@ export default function CasesPage() {
                 value={form.title} 
                 onChange={e => setForm({...form, title: e.target.value})} 
                 error={!!errors.title} 
+                helperText={errors.title}
                 required
               />
             </Grid>
@@ -294,6 +296,9 @@ export default function CasesPage() {
                 size="small" 
                 value={form.caseNumber} 
                 onChange={e => setForm({...form, caseNumber: e.target.value})} 
+                error={!!errors.caseNumber}
+                helperText={errors.caseNumber}
+                required
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -325,6 +330,9 @@ export default function CasesPage() {
                 size="small" 
                 value={form.courtName} 
                 onChange={e => setForm({...form, courtName: e.target.value})} 
+                error={!!errors.courtName}
+                helperText={errors.courtName}
+                required
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -334,6 +342,9 @@ export default function CasesPage() {
                 size="small" 
                 value={form.district} 
                 onChange={e => setForm({...form, district: e.target.value})} 
+                error={!!errors.district}
+                helperText={errors.district}
+                required
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -405,7 +416,15 @@ export default function CasesPage() {
         <DialogActions>
           <Button onClick={() => setOpenCreate(false)}>Cancel</Button>
           <Button variant="contained" onClick={async () => {
-             if (!form.title) return setErrors({title:true});
+             const next = {};
+             if (!required(form.title)) next.title = 'Case Title is required';
+             if (!required(form.caseNumber)) next.caseNumber = 'Case Number is required';
+             if (!required(form.courtName)) next.courtName = 'Court Name is required';
+             if (!required(form.district)) next.district = 'District is required';
+             
+             setErrors(next);
+             if (Object.keys(next).length > 0) return;
+
              await CasesApi.create(form);
              setOpenCreate(false);
              load();
