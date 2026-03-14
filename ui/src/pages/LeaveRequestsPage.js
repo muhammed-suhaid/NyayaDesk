@@ -5,6 +5,7 @@ import {
 import { CheckCircle, Cancel, History, Pending, Description, PostAdd, Info } from '@mui/icons-material';
 import { getRole } from '../auth';
 import { LeaveApi } from '../services/api';
+import { UI_ACTIONS, LEGAL_TERMS, COMMON_FIELDS } from '../constants';
 
 const LEAVE_TYPES = ['Casual', 'Sick', 'Earned', 'Personal', 'Other'];
 
@@ -49,10 +50,10 @@ export default function LeaveRequestsPage() {
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>Leave</Typography>
-            <Typography variant="caption" color="text.secondary">Manage leave requests and status.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{LEGAL_TERMS.LEAVE}</Typography>
+            <Typography variant="caption" color="text.secondary">Manage your time off.</Typography>
           </Box>
-          {role === 'advocate' && <Button variant="contained" size="small" startIcon={<PostAdd />} onClick={() => setOpenSubmit(true)} sx={{ fontWeight: 800 }}>Apply</Button>}
+          {role === 'advocate' && <Button variant="contained" size="small" startIcon={<PostAdd />} onClick={() => setOpenSubmit(true)} sx={{ fontWeight: 800 }}>{UI_ACTIONS.APPLY}</Button>}
         </Box>
 
         <Grid container spacing={2}>
@@ -73,7 +74,7 @@ export default function LeaveRequestsPage() {
           <Box sx={{ overflowX: 'auto' }}>
             {loading && <LinearProgress />}
             <Table size="small">
-              <TableHead><TableRow sx={{bgcolor:'action.hover'}}>{role==='admin'&&<TableCell sx={{fontWeight:800}}>Staff</TableCell>}<TableCell sx={{fontWeight:800}}>Dates</TableCell><TableCell align="center" sx={{fontWeight:800}}>Days</TableCell><TableCell sx={{fontWeight:800}}>Type</TableCell><TableCell sx={{fontWeight:800}}>Reason</TableCell><TableCell align="center" sx={{fontWeight:800}}>Status</TableCell>{role==='admin'&&<TableCell />}</TableRow></TableHead>
+              <TableHead><TableRow sx={{bgcolor:'action.hover'}}>{role==='admin'&&<TableCell sx={{fontWeight:800}}>{LEGAL_TERMS.TEAM} Member</TableCell>}<TableCell sx={{fontWeight:800}}>Dates</TableCell><TableCell align="center" sx={{fontWeight:800}}>Days</TableCell><TableCell sx={{fontWeight:800}}>{COMMON_FIELDS.TYPE}</TableCell><TableCell sx={{fontWeight:800}}>{COMMON_FIELDS.REASON}</TableCell><TableCell align="center" sx={{fontWeight:800}}>{COMMON_FIELDS.STATUS}</TableCell>{role==='admin'&&<TableCell />}</TableRow></TableHead>
               <TableBody>
                 {filtered.map(i => (
                   <TableRow key={i.id} hover>
@@ -95,15 +96,15 @@ export default function LeaveRequestsPage() {
       </Stack>
 
       <Dialog open={openSubmit} onClose={() => setOpenSubmit(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 900 }}>Apply for Leave</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 900 }}>{UI_ACTIONS.APPLY}</DialogTitle>
         <DialogContent dividers sx={{ py: 2 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={2}><TextField fullWidth type="date" label="From" InputLabelProps={{shrink:true}} value={form.fromDate} onChange={e=>setForm({...form, fromDate:e.target.value})} size="small"/><TextField fullWidth type="date" label="To" InputLabelProps={{shrink:true}} value={form.toDate} onChange={e=>setForm({...form, toDate:e.target.value})} size="small"/></Stack>
-            <TextField select fullWidth label="Type" value={form.leaveType} onChange={e=>setForm({...form, leaveType:e.target.value})} size="small">{LEAVE_TYPES.map(t=><MenuItem key={t} value={t} sx={{fontSize:'0.75rem'}}>{t}</MenuItem>)}</TextField>
-            <TextField fullWidth multiline rows={2} label="Reason" value={form.reason} onChange={e=>setForm({...form, reason:e.target.value})} size="small" />
+            <TextField select fullWidth label={COMMON_FIELDS.TYPE} value={form.leaveType} onChange={e=>setForm({...form, leaveType:e.target.value})} size="small">{LEAVE_TYPES.map(t=><MenuItem key={t} value={t} sx={{fontSize:'0.75rem'}}>{t}</MenuItem>)}</TextField>
+            <TextField fullWidth multiline rows={2} label={COMMON_FIELDS.REASON} value={form.reason} onChange={e=>setForm({...form, reason:e.target.value})} size="small" />
           </Stack>
         </DialogContent>
-        <DialogActions><Button onClick={()=>setOpenSubmit(false)}>Cancel</Button><Button variant="contained" onClick={async ()=>{ await LeaveApi.submit(form); setOpenSubmit(false); load(); }} sx={{fontWeight:900}}>Apply</Button></DialogActions>
+        <DialogActions><Button onClick={() => setOpenSubmit(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" onClick={async ()=>{ await LeaveApi.submit(form); setOpenSubmit(false); load(); }} sx={{fontWeight:900}}>{UI_ACTIONS.APPLY}</Button></DialogActions>
       </Dialog>
     </Box>
   );

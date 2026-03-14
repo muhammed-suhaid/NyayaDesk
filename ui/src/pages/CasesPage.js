@@ -43,9 +43,10 @@ import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import { AdvocatesApi, CasesApi, ClientsApi } from '../services/api';
 import { getRole } from '../auth';
 import { required } from '../utils/validation';
+import { UI_ACTIONS, CASE_CATEGORIES, LEGAL_TERMS, FORM_METADATA, COMMON_FIELDS, DASHBOARD_METRICS } from '../constants';
 
-const CASE_GROUPS = ['Civil', 'Criminal', 'Consumer', 'Family', 'Writ', 'Other'];
-const STATUSES = ['Open', 'In Progress', 'Disposed', 'Closed'];
+const CASE_GROUPS = CASE_CATEGORIES.TYPES;
+const STATUSES = CASE_CATEGORIES.STATUSES;
 
 const StatusBadge = ({ status }) => {
   const theme = useTheme();
@@ -141,28 +142,28 @@ export default function CasesPage() {
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>Cases</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{LEGAL_TERMS.CASE}s</Typography>
             <Typography variant="caption" color="text.secondary">Manage and track all firm cases.</Typography>
           </Box>
-          {canAdd && <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenCreate(true)} sx={{ fontWeight: 800 }}>Add Case</Button>}
+          {canAdd && <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenCreate(true)} sx={{ fontWeight: 800 }}>{UI_ACTIONS.ADD} {LEGAL_TERMS.CASE}</Button>}
         </Box>
 
         <Grid container spacing={2}>
-          <Grid item xs={4}><StatSummary title="Total" value={stats.total} icon={<BusinessCenterIcon />} color={theme.palette.primary.main} /></Grid>
-          <Grid item xs={4}><StatSummary title="Active" value={stats.active} icon={<GavelIcon />} color={theme.palette.warning.main} /></Grid>
-          <Grid item xs={4}><StatSummary title="Upcoming" value={stats.upcoming} icon={<HistoryEduIcon />} color={theme.palette.info.main} /></Grid>
+          <Grid item xs={4}><StatSummary title={DASHBOARD_METRICS.TOTAL_CASES} value={stats.total} icon={<BusinessCenterIcon />} color={theme.palette.primary.main} /></Grid>
+          <Grid item xs={4}><StatSummary title={DASHBOARD_METRICS.ACTIVE_CASES} value={stats.active} icon={<GavelIcon />} color={theme.palette.warning.main} /></Grid>
+          <Grid item xs={4}><StatSummary title={DASHBOARD_METRICS.HEARINGS} value={stats.upcoming} icon={<HistoryEduIcon />} color={theme.palette.info.main} /></Grid>
         </Grid>
 
         <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
            <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
             <Grid container spacing={1} alignItems="center">
               <Grid item xs={12} md={4}>
-                <TextField fullWidth placeholder="Search title, number, folder..." size="small" value={search} onChange={e => setSearch(e.target.value)} InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.disabled', mr: 0.5, fontSize: 16 }} />, sx: { fontSize: '0.75rem' } }} />
+                <TextField fullWidth placeholder={FORM_METADATA.SEARCH_HINT} size="small" value={search} onChange={e => setSearch(e.target.value)} InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.disabled', mr: 0.5, fontSize: 16 }} />, sx: { fontSize: '0.75rem' } }} />
               </Grid>
               <Grid item xs={4} md={2.5}>
-                <FormControl fullWidth size="small"><InputLabel sx={{ fontSize: '0.75rem' }}>Status</InputLabel>
-                  <Select value={filters.status} label="Status" onChange={e => setFilters({...filters, status: e.target.value})} sx={{ fontSize: '0.75rem' }}>
-                    <MenuItem value="">All Status</MenuItem>
+                <FormControl fullWidth size="small"><InputLabel sx={{ fontSize: '0.75rem' }}>{COMMON_FIELDS.STATUS}</InputLabel>
+                  <Select value={filters.status} label={COMMON_FIELDS.STATUS} onChange={e => setFilters({...filters, status: e.target.value})} sx={{ fontSize: '0.75rem' }}>
+                    <MenuItem value="">{UI_ACTIONS.ALL} {COMMON_FIELDS.STATUS}</MenuItem>
                     {STATUSES.map(s => <MenuItem key={s} value={s} sx={{ fontSize: '0.75rem' }}>{s}</MenuItem>)}
                   </Select>
                 </FormControl>
@@ -209,13 +210,13 @@ export default function CasesPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="District" size="small" value={filters.district || ''} onChange={e => setFilters({...filters, district: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder={LEGAL_TERMS.DISTRICT} size="small" value={filters.district || ''} onChange={e => setFilters({...filters, district: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="Case Type" size="small" value={filters.caseType || ''} onChange={e => setFilters({...filters, caseType: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder="Type" size="small" value={filters.caseType || ''} onChange={e => setFilters({...filters, caseType: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="Court Name" size="small" value={filters.courtName || ''} onChange={e => setFilters({...filters, courtName: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder={LEGAL_TERMS.COURT} size="small" value={filters.courtName || ''} onChange={e => setFilters({...filters, courtName: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                 </Grid>
               </Box>
@@ -292,7 +293,7 @@ export default function CasesPage() {
             <Grid item xs={12} md={6}>
               <TextField 
                 fullWidth 
-                label="Case Number" 
+                label={LEGAL_TERMS.CASE_NO} 
                 size="small" 
                 value={form.caseNumber} 
                 onChange={e => setForm({...form, caseNumber: e.target.value})} 
@@ -326,7 +327,7 @@ export default function CasesPage() {
             <Grid item xs={12} md={6}>
               <TextField 
                 fullWidth 
-                label="Court Name" 
+                label={LEGAL_TERMS.COURT} 
                 size="small" 
                 value={form.courtName} 
                 onChange={e => setForm({...form, courtName: e.target.value})} 
@@ -338,7 +339,7 @@ export default function CasesPage() {
             <Grid item xs={12} md={6}>
               <TextField 
                 fullWidth 
-                label="District" 
+                label={LEGAL_TERMS.DISTRICT} 
                 size="small" 
                 value={form.district} 
                 onChange={e => setForm({...form, district: e.target.value})} 
@@ -394,7 +395,7 @@ export default function CasesPage() {
             <Grid item xs={12} md={6}>
               <TextField 
                 fullWidth 
-                label="Next Purpose" 
+                label="Purpose" 
                 size="small" 
                 value={form.nextPurpose} 
                 onChange={e => setForm({...form, nextPurpose: e.target.value})} 
@@ -414,13 +415,13 @@ export default function CasesPage() {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCreate(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCreate(false)}>{UI_ACTIONS.CANCEL}</Button>
           <Button variant="contained" onClick={async () => {
              const next = {};
-             if (!required(form.title)) next.title = 'Case Title is required';
-             if (!required(form.caseNumber)) next.caseNumber = 'Case Number is required';
-             if (!required(form.courtName)) next.courtName = 'Court Name is required';
-             if (!required(form.district)) next.district = 'District is required';
+             if (!required(form.title)) next.title = 'Title required';
+             if (!required(form.caseNumber)) next.caseNumber = 'Number required';
+             if (!required(form.courtName)) next.courtName = 'Court required';
+             if (!required(form.district)) next.district = 'District required';
              
              setErrors(next);
              if (Object.keys(next).length > 0) return;
@@ -428,7 +429,7 @@ export default function CasesPage() {
              await CasesApi.create(form);
              setOpenCreate(false);
              load();
-          }} sx={{ fontWeight: 900 }}>Create</Button>
+          }} sx={{ fontWeight: 900 }}>{UI_ACTIONS.SAVE}</Button>
         </DialogActions>
       </Dialog>
     </Box>

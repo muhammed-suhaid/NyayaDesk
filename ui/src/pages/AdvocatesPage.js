@@ -10,6 +10,7 @@ import { AdvocatesApi, AdminApi } from '../services/api';
 import { getRole } from '../auth';
 import EditIcon from '@mui/icons-material/Edit';
 import { isValidEmail, isValidPhoneRequired10Digit, passwordMinLen, required } from '../utils/validation';
+import { UI_ACTIONS, USER_ROLES, FORM_METADATA } from '../constants';
 
 export default function AdvocatesPage() {
   const theme = useTheme();
@@ -136,15 +137,15 @@ export default function AdvocatesPage() {
               onChange={e => setForm({...form, password: e.target.value})} 
               error={!!errors.password} 
               helperText={errors.password}
-              placeholder={editId ? "Leave blank to keep current" : ""}
+              placeholder={FORM_METADATA.PASSWORD_HINT}
             />
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Role</InputLabel>
                   <Select value={form.role} label="Role" onChange={e => setForm({...form, role: e.target.value})}>
-                    <MenuItem value="Admin">Admin</MenuItem>
-                    <MenuItem value="Advocate">Advocate</MenuItem>
+                    <MenuItem value="Admin">{USER_ROLES.ADMIN}</MenuItem>
+                    <MenuItem value="Advocate">{USER_ROLES.ADVOCATE}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -171,7 +172,7 @@ export default function AdvocatesPage() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => setOpen(false)}>{UI_ACTIONS.CANCEL}</Button>
           <Button variant="contained" onClick={async () => { 
             if(validate()) { 
               if (editId) {
@@ -182,7 +183,7 @@ export default function AdvocatesPage() {
               setOpen(false); 
               load(); 
             } 
-          }} sx={{ fontWeight: 900 }}>{editId ? 'Save' : 'Add'}</Button>
+          }} sx={{ fontWeight: 900 }}>{UI_ACTIONS.SAVE}</Button>
         </DialogActions>
       </Dialog>
     </Box>

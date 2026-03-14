@@ -39,18 +39,19 @@ import NotificationPanel from './NotificationPanel';
 import ProfileDialog from './ProfileDialog';
 import { NotificationsApi } from '../services/api';
 import { getCurrentUser, getRole, logout } from '../auth';
+import { APP_CONFIG, LEGAL_TERMS, USER_ROLES } from '../constants';
 
 const drawerWidth = 200;
 
 const navItems = [
-  { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Cases', path: '/cases', icon: <GavelIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Clients', path: '/clients', icon: <PeopleIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Team', path: '/advocates', icon: <AccountBoxIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Attendance', path: '/attendance', icon: <EventAvailableIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Leave', path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Reports', path: '/reports', icon: <AssessmentIcon />, roles: ['admin', 'advocate'] },
-  { label: 'Settings', path: '/settings', icon: <SettingsIcon />, roles: ['admin'] },
+  { label: LEGAL_TERMS.DASHBOARD, path: '/dashboard', icon: <DashboardIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.CASE + 's', path: '/cases', icon: <GavelIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.CLIENTS, path: '/clients', icon: <PeopleIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.TEAM, path: '/advocates', icon: <AccountBoxIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.ATTENDANCE, path: '/attendance', icon: <EventAvailableIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.LEAVE, path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.REPORTS, path: '/reports', icon: <AssessmentIcon />, roles: ['admin', 'advocate'] },
+  { label: LEGAL_TERMS.SETTINGS, path: '/settings', icon: <SettingsIcon />, roles: ['admin'] },
   { label: 'Admin', path: '/superadmin', icon: <CorporateFareIcon />, roles: ['super_admin'] },
 ];
 
@@ -98,7 +99,7 @@ export default function AppLayout({ children }) {
         <Avatar sx={{ bgcolor: 'primary.main', width: 24, height: 24 }}>
           <GavelIcon sx={{ fontSize: 14, color: '#fff' }} />
         </Avatar>
-        <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#fff' }}>NyayaDesk</Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#fff' }}>{APP_CONFIG.BRAND_NAME}</Typography>
       </Box>
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 1 }} />
@@ -131,7 +132,7 @@ export default function AppLayout({ children }) {
           <Avatar sx={{ width: 24, height: 24, fontSize: '0.6rem', fontWeight: 800 }}>{user?.name?.charAt(0).toUpperCase() || '?'}</Avatar>
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.65rem', display: 'block' }}>{user?.name || 'User'}</Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{role?.toUpperCase()}</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6rem' }}>{role === 'admin' ? USER_ROLES.ADMIN : role === 'advocate' ? USER_ROLES.ADVOCATE : role?.toUpperCase()}</Typography>
           </Box>
         </Stack>
       </Box>
@@ -163,7 +164,7 @@ export default function AppLayout({ children }) {
           </IconButton>
 
           <Typography variant="subtitle2" sx={{ fontWeight: 900, color: 'text.primary' }}>
-            {navItems.find(n => n.path === activePath)?.label || 'NyayaDesk'}
+            {navItems.find(n => n.path === activePath)?.label || APP_CONFIG.BRAND_NAME}
           </Typography>
 
           <Stack direction="row" spacing={1} alignItems="center">

@@ -322,7 +322,7 @@ export default function RegisterPage() {
                       fullWidth
                       sx={{ bgcolor: '#ffffff', color: '#111111', '&:hover': { bgcolor: '#f5f5f5' } }}
                     >
-                      Create Account
+                      Register Firm Workspace
                     </Button>
                   </Grid>
                 </Grid>

@@ -19,6 +19,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import { useNavigate } from 'react-router-dom';
 
 import { isAuthenticated } from '../auth';
+import { APP_CONFIG } from '../constants';
 
 const FeatureCard = ({ icon, title, description }) => (
   <Card variant="outlined" sx={{ height: '100%' }}>
@@ -69,7 +70,7 @@ export default function LandingPage() {
             <Grid item xs={12} md={7}>
               <Stack spacing={2}>
                 <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                  NyayaDesk – Legal Case Management System
+                  {APP_CONFIG.BRAND_NAME} – Legal Case Management System
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 500 }}>
                   An AI-Based Legal Case Management and Document Generation System
@@ -82,7 +83,7 @@ export default function LandingPage() {
                     onClick={() => navigate('/login')}
                     sx={{ bgcolor: '#ffffff', color: '#111111', '&:hover': { bgcolor: '#f5f5f5' } }}
                   >
-                    Sign In
+                    Client & Staff Login
                   </Button>
                   <Button
                     size="large"
@@ -175,7 +176,7 @@ export default function LandingPage() {
                   System Overview
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  NyayaDesk helps law offices run on a single source of truth.
+                  {APP_CONFIG.BRAND_NAME} helps law offices run on a single source of truth.
                 </Typography>
               </Stack>
               <Stack spacing={1.25} sx={{ mt: 2 }}>
@@ -190,7 +191,7 @@ export default function LandingPage() {
                 <CardContent>
                   <Stack spacing={1}>
                     <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                      Start managing your legal practice with NyayaDesk today.
+                      Start managing your legal practice with {APP_CONFIG.BRAND_NAME} today.
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Clean workflows. Better visibility. Professional interface.
@@ -204,7 +205,7 @@ export default function LandingPage() {
                         '&:hover': { bgcolor: '#000000' },
                       }}
                     >
-                      Login to NyayaDesk
+                      Login to {APP_CONFIG.BRAND_NAME}
                     </Button>
                   </Stack>
                 </CardContent>
@@ -215,7 +216,7 @@ export default function LandingPage() {
 
         <Box sx={{ py: 4, textAlign: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            © {new Date().getFullYear()} NyayaDesk
+            © {new Date().getFullYear()} {APP_CONFIG.BRAND_NAME}
           </Typography>
         </Box>
       </Container>

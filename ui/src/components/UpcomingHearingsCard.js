@@ -20,6 +20,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 import { HearingsApi } from '../services/api';
+import { LEGAL_TERMS, UI_ACTIONS, MESSAGES } from '../constants';
 
 const UpcomingHearingsCard = () => {
   const theme = useTheme();
@@ -79,7 +80,7 @@ const UpcomingHearingsCard = () => {
 
   const renderHearingItem = (h) => (
     <ListItem 
-      key={`${h.hearingDate}-${h.caseId}`} 
+      key={h.id} 
       sx={{ 
         px: 2, py: 2, 
         borderRadius: 4, 
@@ -117,7 +118,7 @@ const UpcomingHearingsCard = () => {
 
   const SectionHeader = ({ title, count }) => (
     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 3, mb: 1, px: 2 }}>
-      <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.disabled', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+      <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.disabled', letterSpacing: '0.1em', fontSize: '0.7rem' }}>
         {title}
       </Typography>
       {count > 0 && (
@@ -142,30 +143,30 @@ const UpcomingHearingsCard = () => {
             <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main', width: 40, height: 40 }}>
               <CalendarMonthIcon fontSize="small" />
             </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>Docket Schedule</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{LEGAL_TERMS.HEARINGS}</Typography>
           </Stack>
-          <Button size="small" sx={{ fontWeight: 800 }} onClick={() => navigate('/cases')}>View All</Button>
+          <Button size="small" sx={{ fontWeight: 800 }} onClick={() => navigate('/cases')}>{UI_ACTIONS.VIEW_ALL}</Button>
         </Box>
 
         <Box sx={{ pb: 3 }}>
-          <SectionHeader title="Immediate (Today)" count={grouped.today.length} />
+          <SectionHeader title="Today" count={grouped.today.length} />
           <List dense sx={{ px: 1 }}>
             {grouped.today.length > 0 ? grouped.today.map(renderHearingItem) : (
-              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>No immediate hearings</Typography>
+              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>{MESSAGES.NO_HEARINGS_TODAY}</Typography>
             )}
           </List>
 
           <SectionHeader title="Tomorrow" count={grouped.tomorrow.length} />
           <List dense sx={{ px: 1 }}>
             {grouped.tomorrow.length > 0 ? grouped.tomorrow.map(renderHearingItem) : (
-              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>Clear schedule</Typography>
+              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>{MESSAGES.NO_HEARINGS_TOMORROW}</Typography>
             )}
           </List>
 
-          <SectionHeader title="Upcoming Week" count={grouped.upcoming.length} />
+          <SectionHeader title="Next 7 Days" count={grouped.upcoming.length} />
           <List dense sx={{ px: 1 }}>
             {grouped.upcoming.length > 0 ? grouped.upcoming.map(renderHearingItem) : (
-              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>No records found</Typography>
+              <Typography variant="caption" color="text.disabled" sx={{ px: 2, py: 1, display: 'block' }}>{MESSAGES.NO_HEARINGS_WEEK}</Typography>
             )}
           </List>
         </Box>

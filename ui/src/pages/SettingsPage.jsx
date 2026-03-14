@@ -15,6 +15,7 @@ import CompanySettings from './CompanySettings';
 import UserManagement from './UserManagement';
 import ClientManagement from './ClientManagement';
 import SubscriptionSettings from './SubscriptionSettings';
+import { UI_ACTIONS } from '../constants';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;

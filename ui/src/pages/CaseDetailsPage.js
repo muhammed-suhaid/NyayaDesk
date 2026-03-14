@@ -19,6 +19,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CasesApi, AdvocatesApi, ClientsApi } from '../services/api';
 import { getRole } from '../auth';
+import { UI_ACTIONS, LEGAL_TERMS, CASE_CATEGORIES } from '../constants';
 
 const STATUS_COLORS = {
   'Open': 'info',
@@ -209,7 +210,7 @@ export default function CaseDetailsPage() {
                           clientIds: caseData.clients?.map(c => c.id) || []
                         }); 
                         setEditOpen(true); 
-                      }} sx={{ fontWeight: 800 }}>Edit</Button>
+                      }} sx={{ fontWeight: 800 }}>{UI_ACTIONS.EDIT}</Button>
                     )}
                   </Stack>
                 </Stack>
@@ -221,7 +222,7 @@ export default function CaseDetailsPage() {
 
                 <Grid container spacing={2}>
                   {[
-                    { label: 'Court', value: caseData.courtName || '-' },
+                    { label: LEGAL_TERMS.COURT, value: caseData.courtName || '-' },
                     { label: 'Advocate', value: caseData.assignedAdvocate?.name || '-' },
                     { label: 'Type', value: caseData.caseType || '-' },
                     { label: 'Next Hearing', value: nextH ? new Date(nextH.hearingDate).toLocaleDateString() : 'TBD' }
@@ -307,7 +308,7 @@ export default function CaseDetailsPage() {
                 <CardContent sx={{ p: 2 }}>
                   <Stack direction="row" justifyContent="space-between" mb={2}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>Notes</Typography>
-                    {!locked && <Button size="small" onClick={() => { setUpdateForm({}); setUpdateOpen(true); }} sx={{ fontSize: '0.7rem' }}>+ Add</Button>}
+                    {!locked && <Button size="small" onClick={() => { setUpdateForm({}); setUpdateOpen(true); }} sx={{ fontSize: '0.7rem' }}>+ {UI_ACTIONS.ADD}</Button>}
                   </Stack>
                   <Stack spacing={1}>
                     {(caseData.updates || []).map(u => (
@@ -404,7 +405,7 @@ export default function CaseDetailsPage() {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField 
-                label="Court Name" 
+                label={LEGAL_TERMS.COURT} 
                 size="small" 
                 fullWidth 
                 value={caseForm.courtName || ''} 
@@ -413,7 +414,7 @@ export default function CaseDetailsPage() {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField 
-                label="District" 
+                label={LEGAL_TERMS.DISTRICT} 
                 size="small" 
                 fullWidth 
                 value={caseForm.district || ''} 
@@ -487,8 +488,8 @@ export default function CaseDetailsPage() {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdate} sx={{ fontWeight: 900 }}>Save Changes</Button>
+          <Button onClick={() => setEditOpen(false)}>{UI_ACTIONS.CANCEL}</Button>
+          <Button variant="contained" onClick={handleUpdate} sx={{ fontWeight: 900 }}>{UI_ACTIONS.SAVE}</Button>
         </DialogActions>
       </Dialog>
 
@@ -500,7 +501,7 @@ export default function CaseDetailsPage() {
             <TextField label="Notes" multiline rows={2} size="small" fullWidth value={hearingForm.notes || ''} onChange={e => setHearingForm({...hearingForm, notes: e.target.value})} />
           </Stack>
         </DialogContent>
-        <DialogActions><Button onClick={() => setHearingOpen(false)}>Cancel</Button><Button variant="contained" onClick={handleHearing}>Save</Button></DialogActions>
+        <DialogActions><Button onClick={() => setHearingOpen(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" onClick={handleHearing}>{UI_ACTIONS.SAVE}</Button></DialogActions>
       </Dialog>
 
       <Dialog open={updateOpen} onClose={() => setUpdateOpen(false)} maxWidth="xs" fullWidth>
@@ -508,7 +509,7 @@ export default function CaseDetailsPage() {
         <DialogContent dividers sx={{ py: 2 }}>
           <TextField label="Note" multiline rows={3} size="small" fullWidth value={updateForm.updateText || ''} onChange={e => setUpdateForm({...updateForm, updateText: e.target.value})} />
         </DialogContent>
-        <DialogActions><Button onClick={() => setUpdateOpen(false)}>Cancel</Button><Button variant="contained" onClick={handleAddNote}>Save</Button></DialogActions>
+        <DialogActions><Button onClick={() => setUpdateOpen(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" onClick={handleAddNote}>{UI_ACTIONS.SAVE}</Button></DialogActions>
       </Dialog>
 
       <Dialog open={disposeOpen} onClose={() => setDisposeOpen(false)} maxWidth="xs" fullWidth>
@@ -526,7 +527,7 @@ export default function CaseDetailsPage() {
             <TextField label="Outcome" multiline rows={2} size="small" fullWidth value={disposeForm.outcome || ''} onChange={e => setDisposeForm({...disposeForm, outcome: e.target.value})} />
           </Stack>
         </DialogContent>
-        <DialogActions><Button onClick={() => setDisposeOpen(false)}>Cancel</Button><Button variant="contained" color="success" onClick={handleFinalize}>Confirm</Button></DialogActions>
+        <DialogActions><Button onClick={() => setDisposeOpen(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" color="success" onClick={handleFinalize}>Confirm</Button></DialogActions>
       </Dialog>
 
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>

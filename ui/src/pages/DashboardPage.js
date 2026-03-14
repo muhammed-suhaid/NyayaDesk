@@ -26,6 +26,7 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
 import { NotificationsApi, ReportsApi } from '../services/api';
 import { getRole } from '../auth';
+import { UI_ACTIONS, DASHBOARD_METRICS, MESSAGES, LEGAL_TERMS } from '../constants';
 import UpcomingHearingsCard from '../components/UpcomingHearingsCard';
 import DashboardCharts from '../components/DashboardCharts';
 
@@ -102,10 +103,10 @@ export default function DashboardPage() {
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, mb: 0.1 }}>Dashboard</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Daily overview of firm metrics and updates.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{LEGAL_TERMS.DASHBOARD}</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>Summary of firm metrics and activity.</Typography>
           </Box>
-          <Button variant="outlined" size="small" onClick={() => navigate('/reports')} sx={{ fontWeight: 800 }}>Reports</Button>
+          <Button variant="outlined" size="small" onClick={() => navigate('/reports')} sx={{ fontWeight: 800 }}>{LEGAL_TERMS.REPORTS}</Button>
         </Box>
 
       {role === 'super_admin' ? (
@@ -117,16 +118,16 @@ export default function DashboardPage() {
         <>
           <Grid container spacing={2}>
             <Grid item xs={6} md={3}>
-              <SummaryCard title="Total Cases" value={summary?.totalCases || 0} icon={<GavelIcon />} color={theme.palette.primary.main} />
+              <SummaryCard title={DASHBOARD_METRICS.TOTAL_CASES} value={summary?.totalCases || 0} icon={<GavelIcon />} color={theme.palette.primary.main} />
             </Grid>
             <Grid item xs={6} md={3}>
-              <SummaryCard title="Active Cases" value={summary?.activeCases || 0} icon={<TrendingUpIcon />} color={theme.palette.success.main} />
+              <SummaryCard title={DASHBOARD_METRICS.ACTIVE_CASES} value={summary?.activeCases || 0} icon={<TrendingUpIcon />} color={theme.palette.success.main} />
             </Grid>
             <Grid item xs={6} md={3}>
-              <SummaryCard title="Hearings" value={summary?.upcomingHearings || 0} icon={<EventIcon />} color={theme.palette.warning.main} />
+              <SummaryCard title={DASHBOARD_METRICS.HEARINGS} value={summary?.upcomingHearings || 0} icon={<EventIcon />} color={theme.palette.warning.main} />
             </Grid>
             <Grid item xs={6} md={3}>
-              <SummaryCard title="Pending" value={summary?.pendingTasks || 0} icon={<RecordVoiceOverIcon />} color={theme.palette.error.main} />
+              <SummaryCard title={DASHBOARD_METRICS.PENDING} value={summary?.pendingTasks || 0} icon={<RecordVoiceOverIcon />} color={theme.palette.error.main} />
             </Grid>
           </Grid>
 
@@ -140,7 +141,7 @@ export default function DashboardPage() {
             <Grid item xs={12} lg={4}>
               <Card sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
                 <CardContent sx={{ p: 1.5 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1.5 }}>Recent Updates</Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1.5 }}>{DASHBOARD_METRICS.RECENT_UPDATES}</Typography>
                   <Stack spacing={0.5}>
                     {notifications.map((n) => (
                       <Box key={n.id} sx={{ p: 1, borderRadius: 1.5, bgcolor: n.isRead ? 'transparent' : alpha(theme.palette.primary.main, 0.03) }}>
@@ -148,17 +149,17 @@ export default function DashboardPage() {
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.1, fontSize: '0.65rem' }}>{n.message}</Typography>
                       </Box>
                     ))}
-                    {notifications.length === 0 && <Typography variant="caption" sx={{ py: 2, textAlign: 'center', display: 'block', opacity: 0.5 }}>No updates</Typography>}
+                    {notifications.length === 0 && <Typography variant="caption" sx={{ py: 2, textAlign: 'center', display: 'block', opacity: 0.5 }}>{MESSAGES.NO_UPDATES}</Typography>}
                   </Stack>
                   <Divider sx={{ my: 1.5 }} />
-                  <Button fullWidth size="small" onClick={() => load()} sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '0.65rem' }}>Refresh</Button>
+                  <Button fullWidth size="small" onClick={() => load()} sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '0.65rem' }}>{UI_ACTIONS.REFRESH}</Button>
                 </CardContent>
               </Card>
 
               <Card sx={{ mt: 2, borderRadius: 2.5, bgcolor: theme.palette.primary.main, color: '#fff' }}>
                 <CardContent sx={{ p: 1.5 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 0.5 }}>Support</Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1.5, fontSize: '0.65rem' }}>Need help? Contact our firm support line.</Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 0.5 }}>{DASHBOARD_METRICS.SUPPORT}</Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1.5, fontSize: '0.65rem' }}>{MESSAGES.HELP_MESSAGE}</Typography>
                   <Button variant="contained" color="secondary" size="small" fullWidth sx={{ fontWeight: 900, fontSize: '0.7rem' }}>Contact Help</Button>
                 </CardContent>
               </Card>

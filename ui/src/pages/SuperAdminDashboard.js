@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 
 import { SuperAdminApi } from '../services/api';
+import { UI_ACTIONS } from '../constants';
 
 export default function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
@@ -34,9 +35,9 @@ export default function SuperAdminDashboard() {
   return (
     <Stack spacing={2}>
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
-        <Typography variant="h5">Super Admin</Typography>
+        <Typography variant="h5">Admin Portal</Typography>
         <Button variant="contained" sx={{ bgcolor: '#111111', '&:hover': { bgcolor: '#000000' } }} onClick={load}>
-          Refresh
+          {UI_ACTIONS.UPDATE}
         </Button>
       </Stack>
 

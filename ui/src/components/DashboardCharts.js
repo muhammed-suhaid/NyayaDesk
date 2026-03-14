@@ -41,7 +41,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           {label || payload[0].name}
         </Typography>
         <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main' }}>
-          {payload[0].value} <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>units</span>
+          {payload[0].value} <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>cases</span>
         </Typography>
       </Box>
     );
@@ -128,11 +128,11 @@ const DashboardCharts = () => {
   return (
     <Stack spacing={4}>
       <Grid container spacing={4}>
-        <Grid item xs={12} md={5}>
+        <Grid item active xs={12} md={5}>
           <Card sx={cardStyle}>
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Matters Lifecycle</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Status-wise case segmentation</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Case Status</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Overview of current statuses</Typography>
               
               <Box sx={{ width: '100%', height: 320, position: 'relative' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -163,7 +163,7 @@ const DashboardCharts = () => {
                     {statusData.reduce((acc, curr) => acc + curr.value, 0)}
                   </Typography>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.disabled', textTransform: 'uppercase' }}>
-                    Files
+                    Total
                   </Typography>
                 </Box>
               </Box>
@@ -183,8 +183,8 @@ const DashboardCharts = () => {
         <Grid item xs={12} md={7}>
           <Card sx={cardStyle}>
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Legal Categories</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Group-wise distribution of claims</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Categories</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Cases per category group</Typography>
 
               <Box sx={{ width: '100%', height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -211,8 +211,8 @@ const DashboardCharts = () => {
 
       <Card sx={cardStyle}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Registration Momentum</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>Temporal analysis of new case intake</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>Case Trends</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>New case registrations over time</Typography>
 
           <Box sx={{ width: '100%', height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">

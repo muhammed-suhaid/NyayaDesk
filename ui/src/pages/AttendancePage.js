@@ -13,6 +13,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 
 import { AttendanceApi, AdvocatesApi } from '../services/api';
 import { getRole } from '../auth';
+import { UI_ACTIONS, LEGAL_TERMS, COMMON_FIELDS, DASHBOARD_METRICS } from '../constants';
 
 const StatCard = ({ title, value, icon, color }) => (
   <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
@@ -77,14 +78,14 @@ export default function AttendancePage() {
       <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>Attendance</Typography>
-            <Typography variant="caption" color="text.secondary">Track and manage staff attendance.</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{LEGAL_TERMS.ATTENDANCE}</Typography>
+            <Typography variant="caption" color="text.secondary">Track and manage staff activity.</Typography>
           </Box>
           {isAdmin && <Button variant="contained" size="small" startIcon={<DownloadIcon />} onClick={async () => {
             const res = await AttendanceApi.export({ month: `${currentMonth.getFullYear()}-${currentMonth.getMonth()+1}`, advocateId: selectedAdvocate });
             const url = window.URL.createObjectURL(res.data);
             const a = document.createElement('a'); a.href = url; a.download = 'Attendance.xlsx'; a.click();
-          }} sx={{ fontWeight: 800 }}>Download</Button>}
+          }} sx={{ fontWeight: 800 }}>{UI_ACTIONS.DOWNLOAD}</Button>}
         </Box>
 
         <Grid container spacing={2}>
@@ -101,10 +102,10 @@ export default function AttendancePage() {
                 <CardContent sx={{ p: 1.5, width: '100%' }}>
                   <Stack direction="row" spacing={1}>
                     <Button fullWidth size="small" variant={todayRecord?.checkInTime ? "outlined" : "contained"} color="success" startIcon={<LoginIcon sx={{fontSize:16}}/>} onClick={() => handleMark({status:'present', checkInTime: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})})} disabled={!!todayRecord?.checkInTime}>
-                      {todayRecord?.checkInTime ? `In: ${todayRecord.checkInTime}` : 'Check In'}
+                      {todayRecord?.checkInTime ? `In: ${todayRecord.checkInTime}` : 'In'}
                     </Button>
                     <Button fullWidth size="small" variant={todayRecord?.checkOutTime ? "outlined" : "contained"} color="primary" startIcon={<LogoutIcon sx={{fontSize:16}}/>} onClick={() => handleMark({status:'present', checkOutTime: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false})})} disabled={!todayRecord?.checkInTime || !!todayRecord?.checkOutTime}>
-                      {todayRecord?.checkOutTime ? `Out: ${todayRecord.checkOutTime}` : 'Check Out'}
+                      {todayRecord?.checkOutTime ? `Out: ${todayRecord.checkOutTime}` : 'Out'}
                     </Button>
                   </Stack>
                 </CardContent>
@@ -122,9 +123,9 @@ export default function AttendancePage() {
             </Stack>
             {isAdmin && (
               <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel sx={{fontSize:'0.7rem'}}>Staff</InputLabel>
-                <Select value={selectedAdvocate} label="Staff" onChange={e => setSelectedAdvocate(e.target.value)} sx={{fontSize:'0.7rem'}}>
-                  <MenuItem value="">All Members</MenuItem>
+                <InputLabel sx={{fontSize:'0.7rem'}}>{LEGAL_TERMS.TEAM} Member</InputLabel>
+                <Select value={selectedAdvocate} label={`${LEGAL_TERMS.TEAM} Member`} onChange={e => setSelectedAdvocate(e.target.value)} sx={{fontSize:'0.7rem'}}>
+                  <MenuItem value="">Everyone</MenuItem>
                   {advocates.map(a => <MenuItem key={a.id} value={a.id} sx={{fontSize:'0.7rem'}}>{a.name}</MenuItem>)}
                 </Select>
               </FormControl>
@@ -134,7 +135,7 @@ export default function AttendancePage() {
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
-                  <TableCell sx={{ fontWeight: 900, fontSize: '0.6rem', position: 'sticky', left:0, bgcolor: 'action.hover', zIndex: 5 }}>Staff</TableCell>
+                  <TableCell sx={{ fontWeight: 900, fontSize: '0.6rem', position: 'sticky', left:0, bgcolor: 'action.hover', zIndex: 5 }}>{LEGAL_TERMS.TEAM}</TableCell>
                   {days.map(d => <TableCell key={d} align="center" sx={{ fontWeight: 900, fontSize: '0.6rem', minWidth: 24 }}>{d}</TableCell>)}
                 </TableRow>
               </TableHead>

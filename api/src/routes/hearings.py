@@ -44,6 +44,7 @@ def get_upcoming_hearings():
                 client_names.append(link.client.name)
         
         result.append({
+            "id": h.id,
             "caseId": h.case.id,
             "caseTitle": h.case.title,
             "court": h.case.court_name,

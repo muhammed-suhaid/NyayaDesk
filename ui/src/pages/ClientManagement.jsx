@@ -22,6 +22,7 @@ import {
 
 import { ClientsApi } from '../services/api';
 import { isValidEmail, isValidPhoneOptional10Digit, required } from '../utils/validation';
+import { UI_ACTIONS, LEGAL_TERMS } from '../constants';
 
 export default function ClientManagement() {
   const [items, setItems] = useState([]);
@@ -120,7 +121,7 @@ export default function ClientManagement() {
       
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h6">Clients</Typography>
-        <Button variant="contained" onClick={() => handleOpen(null)}>Add Client</Button>
+        <Button variant="contained" onClick={() => handleOpen(null)}>{UI_ACTIONS.ADD} Client</Button>
       </Stack>
 
       <Card>
@@ -131,7 +132,7 @@ export default function ClientManagement() {
                 <TableCell>Name</TableCell>
                 <TableCell>Phone</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>District</TableCell>
+                <TableCell>{LEGAL_TERMS.DISTRICT}</TableCell>
                 <TableCell>Linked Cases</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -145,8 +146,8 @@ export default function ClientManagement() {
                   <TableCell>{c.district || '-'}</TableCell>
                   <TableCell>{(c.cases || []).length}</TableCell>
                   <TableCell align="right">
-                    <Button size="small" onClick={() => handleOpen(c)}>Edit</Button>
-                    <Button size="small" color="error" onClick={() => setDeleteConfirm({ open: true, client: c })}>Delete</Button>
+                    <Button size="small" onClick={() => handleOpen(c)}>{UI_ACTIONS.EDIT}</Button>
+                    <Button size="small" color="error" onClick={() => setDeleteConfirm({ open: true, client: c })}>{UI_ACTIONS.DELETE}</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -161,7 +162,7 @@ export default function ClientManagement() {
       </Card>
 
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editClient ? 'Edit Client' : 'Add Client'}</DialogTitle>
+        <DialogTitle>{editClient ? `${UI_ACTIONS.EDIT} Client` : `${UI_ACTIONS.ADD} Client`}</DialogTitle>
         <DialogContent>
           {status.message && <Alert severity={status.type} sx={{ mb: 2 }}>{status.message}</Alert>}
           <Grid container spacing={2} sx={{ pt: 1 }}>
@@ -203,8 +204,8 @@ export default function ClientManagement() {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
+          <Button onClick={() => setOpen(false)}>{UI_ACTIONS.CANCEL}</Button>
+          <Button variant="contained" onClick={handleSave}>{UI_ACTIONS.SAVE}</Button>
         </DialogActions>
       </Dialog>
 
@@ -214,8 +215,8 @@ export default function ClientManagement() {
           <Typography>Are you sure you want to delete client <strong>{deleteConfirm.client?.name}</strong>?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirm({ open: false, client: null })}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleDeleteConfirm}>Delete</Button>
+          <Button onClick={() => setDeleteConfirm({ open: false, client: null })}>{UI_ACTIONS.CANCEL}</Button>
+          <Button color="error" variant="contained" onClick={handleDeleteConfirm}>{UI_ACTIONS.DELETE}</Button>
         </DialogActions>
       </Dialog>
     </Stack>

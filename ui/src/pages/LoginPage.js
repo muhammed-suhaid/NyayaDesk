@@ -15,6 +15,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 import { DEMO_CREDENTIALS, login } from '../auth';
 import { isValidEmail, passwordMinLen, required } from '../utils/validation';
+import { APP_CONFIG } from '../constants';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function LoginPage() {
                   Sign in
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.85 }}>
-                  Access your NyayaDesk workspace
+                  Access your {APP_CONFIG.BRAND_NAME} workspace
                 </Typography>
               </Stack>
 
@@ -158,7 +159,7 @@ export default function LoginPage() {
 
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="body2" sx={{ opacity: 0.85 }}>
-                  New to NyayaDesk?
+                  New to {APP_CONFIG.BRAND_NAME}?
                 </Typography>
                 <Button component={RouterLink} to="/register" sx={{ color: '#c9a227' }}>
                   Create Account

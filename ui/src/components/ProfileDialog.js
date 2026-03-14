@@ -17,6 +17,7 @@ import {
 import { AuthApi } from '../services/api';
 import { getCurrentUser, updateProfile as updateLocalProfile } from '../auth';
 import { required, isValidPhoneRequired10Digit, passwordMinLen } from '../utils/validation';
+import { UI_ACTIONS, FORM_METADATA } from '../constants';
 
 export default function ProfileDialog({ open, onClose }) {
   const user = getCurrentUser();
@@ -155,36 +156,36 @@ export default function ProfileDialog({ open, onClose }) {
               label="New Password"
               type="password"
               size="small"
-              placeholder="Leave blank to keep current"
-              value={form.password || ''}
-              onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-              error={!!errors.password}
-              helperText={errors.password}
-            />
+            placeholder={FORM_METADATA.PASSWORD_HINT}
+            value={form.password || ''}
+            onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+            error={!!errors.password}
+            helperText={errors.password}
+          />
 
-            <TextField
-              fullWidth
-              label="Confirm New Password"
-              type="password"
-              size="small"
-              value={form.confirmPassword || ''}
-              onChange={(e) => setForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={onClose} disabled={loading}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSubmit} 
-            disabled={loading}
-            sx={{ fontWeight: 900 }}
-          >
-            {loading ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </DialogActions>
+          <TextField
+            fullWidth
+            label="Confirm New Password"
+            type="password"
+            size="small"
+            value={form.confirmPassword || ''}
+            onChange={(e) => setForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} disabled={loading}>{UI_ACTIONS.CANCEL}</Button>
+        <Button 
+          variant="contained" 
+          onClick={handleSubmit} 
+          disabled={loading}
+          sx={{ fontWeight: 900 }}
+        >
+          {loading ? UI_ACTIONS.SAVING : UI_ACTIONS.SAVE}
+        </Button>
+      </DialogActions>
       </Dialog>
 
       <Snackbar 
