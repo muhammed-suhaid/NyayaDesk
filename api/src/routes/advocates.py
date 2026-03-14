@@ -38,8 +38,11 @@ def list_advocates():
             .filter(Case.current_status != "Closed")
             .count()
         )
+        from src.models.user import User
+        user = User.query.filter_by(email=a.email, company_id=sess.company_id).first()
         data = a.to_dict()
         data["openCaseCount"] = open_cases
+        data["userId"] = user.id if user else None
         result.append(data)
 
     return result

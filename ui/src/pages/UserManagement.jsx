@@ -198,7 +198,7 @@ export default function UserManagement() {
                 fullWidth
                 required
                 label="Name"
-                value={form.name}
+                value={form.name || ''}
                 onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
                 error={Boolean(errors.name)}
                 helperText={errors.name}
@@ -209,7 +209,7 @@ export default function UserManagement() {
                 fullWidth
                 required
                 label="Email"
-                value={form.email}
+                value={form.email || ''}
                 onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
                 error={Boolean(errors.email)}
                 helperText={errors.email}
@@ -241,7 +241,7 @@ export default function UserManagement() {
             <Grid item xs={12} md={6}>
                <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
-                <Select label="Role" value={form.role} onChange={(e) => setForm((s) => ({ ...s, role: e.target.value }))} disabled={Boolean(editUser)}>
+                <Select label="Role" value={form.role || 'Advocate'} onChange={(e) => setForm((s) => ({ ...s, role: e.target.value }))}>
                   <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="Advocate">Advocate</MenuItem>
                 </Select>
@@ -253,7 +253,7 @@ export default function UserManagement() {
                   fullWidth
                   required
                   label="Bar council number"
-                  value={form.barCouncilNumber}
+                  value={form.barCouncilNumber || ''}
                   onChange={(e) => setForm((s) => ({ ...s, barCouncilNumber: e.target.value }))}
                   error={Boolean(errors.barCouncilNumber)}
                   helperText={errors.barCouncilNumber}

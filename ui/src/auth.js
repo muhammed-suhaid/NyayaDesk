@@ -83,13 +83,18 @@ export async function registerAdminCompany({
   }
 }
 
-export function updateProfile({ name, phone }) {
+export function updateProfile({ name, phone, barCouncilNumber }) {
   const auth = getAuth();
   if (!auth?.token || !auth?.user) return { ok: false, error: 'Not authenticated' };
 
   const nextAuth = {
     ...auth,
-    user: { ...auth.user, name: name ?? auth.user.name, phone: phone ?? auth.user.phone },
+    user: { 
+      ...auth.user, 
+      name: name ?? auth.user.name, 
+      phone: phone ?? auth.user.phone,
+      barCouncilNumber: barCouncilNumber ?? auth.user.barCouncilNumber
+    },
   };
   localStorage.setItem(AUTH_KEY, JSON.stringify(nextAuth));
   return { ok: true, user: nextAuth.user };

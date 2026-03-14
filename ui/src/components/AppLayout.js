@@ -32,9 +32,11 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
+import PersonIcon from '@mui/icons-material/Person';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
+import ProfileDialog from './ProfileDialog';
 import { NotificationsApi } from '../services/api';
 import { getCurrentUser, getRole, logout } from '../auth';
 
@@ -56,6 +58,7 @@ export default function AppLayout({ children }) {
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
@@ -184,15 +187,30 @@ export default function AppLayout({ children }) {
             anchorEl={profileAnchorEl}
             open={Boolean(profileAnchorEl)}
             onClose={() => setProfileAnchorEl(null)}
-            PaperProps={{ sx: { minWidth: 150, borderRadius: 1, mt: 1 } }}
+            PaperProps={{ sx: { minWidth: 150, borderRadius: 1.5, mt: 1, boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' } }}
           >
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.primary', display: 'block' }}>{user?.name}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem' }}>{user?.email}</Typography>
+            </Box>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem 
+              onClick={() => {
+                setProfileAnchorEl(null);
+                setProfileOpen(true);
+              }}
+              sx={{ py: 0.7 }}
+            >
+              <ListItemIcon sx={{ minWidth: 28 }}><PersonIcon sx={{ fontSize: 16 }} /></ListItemIcon>
+              <ListItemText primary="My Profile" primaryTypographyProps={{ variant: 'caption', fontWeight: 800 }} />
+            </MenuItem>
             <MenuItem 
               onClick={() => {
                 setProfileAnchorEl(null);
                 logout();
                 navigate('/login', { replace: true });
               }}
-              sx={{ color: 'error.main', py: 0.5 }}
+              sx={{ color: 'error.main', py: 0.7 }}
             >
               <ListItemIcon sx={{ minWidth: 28 }}><LogoutIcon sx={{ fontSize: 16 }} color="error" /></ListItemIcon>
               <ListItemText primary="Sign Out" primaryTypographyProps={{ variant: 'caption', fontWeight: 800 }} />
@@ -226,6 +244,7 @@ export default function AppLayout({ children }) {
       </Box>
 
       <NotificationPanel open={notifOpen} onClose={() => { setNotifOpen(false); fetchUnread(); }} />
+      <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
     </Box>
   );
 }

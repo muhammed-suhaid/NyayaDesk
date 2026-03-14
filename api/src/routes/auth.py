@@ -37,8 +37,15 @@ def login():
         if not company or company.status != "active":
             return error_response("Company is inactive", 403)
 
+    user_data = user.to_safe_dict()
+    if user.role == "advocate":
+        from src.models.advocate import Advocate
+        advocate = Advocate.query.filter_by(email=user.email, company_id=user.company_id).first()
+        if advocate:
+            user_data["barCouncilNumber"] = advocate.bar_council_number
+
     token = create_token_for_user(user.id, user.role, user.company_id)
-    return {"token": token, "user": user.to_safe_dict()}
+    return {"token": token, "user": user_data}
 
 
 @auth_bp.post("/register-admin")
@@ -115,6 +122,9 @@ def update_profile():
     if not user:
         return error_response("User not found", 404)
 
+    old_email = user.email
+    old_role = user.role
+
     if name:
         user.name = name
     if phone:
@@ -126,5 +136,27 @@ def update_profile():
             return error_response("password must be at least 6 characters")
         user.password = str(password)
 
+    # Sync with Advocate table if user is an advocate
+    if user.role == "advocate":
+        from src.models.advocate import Advocate
+        advocate = Advocate.query.filter_by(email=old_email, company_id=sess.company_id).first()
+        if advocate:
+            if name:
+                advocate.name = name
+            if phone:
+                advocate.phone = phone
+            
+            bar_council = (payload.get("barCouncilNumber") or "").strip()
+            if bar_council:
+                advocate.bar_council_number = bar_council
+
     db.session.commit()
-    return success_response("Profile updated", user=user.to_safe_dict())
+
+    user_data = user.to_safe_dict()
+    if user.role == "advocate":
+        from src.models.advocate import Advocate
+        advocate = Advocate.query.filter_by(email=user.email, company_id=user.company_id).first()
+        if advocate:
+            user_data["barCouncilNumber"] = advocate.bar_council_number
+
+    return success_response("Profile updated", user=user_data)

@@ -208,13 +208,13 @@ export default function CasesPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="District" size="small" value={filters.district} onChange={e => setFilters({...filters, district: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder="District" size="small" value={filters.district || ''} onChange={e => setFilters({...filters, district: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="Case Type" size="small" value={filters.caseType} onChange={e => setFilters({...filters, caseType: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder="Case Type" size="small" value={filters.caseType || ''} onChange={e => setFilters({...filters, caseType: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                   <Grid item xs={12} md={2}>
-                    <TextField fullWidth placeholder="Court Name" size="small" value={filters.courtName} onChange={e => setFilters({...filters, courtName: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
+                    <TextField fullWidth placeholder="Court Name" size="small" value={filters.courtName || ''} onChange={e => setFilters({...filters, courtName: e.target.value})} InputProps={{ sx: { fontSize: '0.75rem' } }} />
                   </Grid>
                 </Grid>
               </Box>
