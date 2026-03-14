@@ -15,8 +15,8 @@ def seed_if_needed():
     super_admin = User(
         company_id=None,
         name="Platform Owner",
-        email="superadmin@nyayadesk.com",
-        phone=None,
+        email="suhaidshu@gmail.com",
+        phone="9895757238",
         password="super123",
         role="super_admin",
         status="active",

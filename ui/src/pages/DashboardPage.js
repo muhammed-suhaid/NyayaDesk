@@ -7,6 +7,13 @@ import {
   Typography,
   Button,
   Box,
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
+  Snackbar,
   CircularProgress,
   Avatar,
   IconButton,
@@ -15,6 +22,8 @@ import {
   Divider,
   Paper
 } from '@mui/material';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNavigate } from 'react-router-dom';
 import GavelIcon from '@mui/icons-material/Gavel';
 import EventIcon from '@mui/icons-material/Event';
@@ -23,10 +32,11 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
 import { NotificationsApi, ReportsApi } from '../services/api';
 import { getRole } from '../auth';
-import { UI_ACTIONS, DASHBOARD_METRICS, MESSAGES, LEGAL_TERMS } from '../constants';
+import { UI_ACTIONS, DASHBOARD_METRICS, MESSAGES, LEGAL_TERMS, APP_CONFIG } from '../constants';
 import UpcomingHearingsCard from '../components/UpcomingHearingsCard';
 import DashboardCharts from '../components/DashboardCharts';
 
@@ -63,6 +73,7 @@ const SummaryCard = ({ title, value, icon, color }) => (
     </CardContent>
   </Card>
 );
+
 
 export default function DashboardPage() {
   const theme = useTheme();
@@ -160,7 +171,37 @@ export default function DashboardPage() {
                 <CardContent sx={{ p: 1.5 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 0.5 }}>{DASHBOARD_METRICS.SUPPORT}</Typography>
                   <Typography variant="caption" sx={{ opacity: 0.8, display: 'block', mb: 1.5, fontSize: '0.65rem' }}>{MESSAGES.HELP_MESSAGE}</Typography>
-                  <Button variant="contained" color="secondary" size="small" fullWidth sx={{ fontWeight: 900, fontSize: '0.7rem' }}>Contact Help</Button>
+                  <Stack spacing={1}>
+                    <Button 
+                      variant="contained" 
+                      color="secondary" 
+                      size="small" 
+                      fullWidth 
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${APP_CONFIG.SUPPORT_EMAIL}`}
+                      target="_blank"
+                      sx={{ fontWeight: 900, fontSize: '0.7rem' }}
+                      startIcon={<MailOutlineIcon sx={{ fontSize: 16 }} />}
+                    >
+                      Gmail
+                    </Button>
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      fullWidth 
+                      href={`https://wa.me/${APP_CONFIG.SUPPORT_PHONE.replace('+', '')}`}
+                      target="_blank"
+                      sx={{ 
+                        fontWeight: 900, 
+                        fontSize: '0.7rem', 
+                        bgcolor: '#25D366', 
+                        color: '#fff',
+                        '&:hover': { bgcolor: '#128C7E' }
+                      }}
+                      startIcon={<WhatsAppIcon sx={{ fontSize: 16 }} />}
+                    >
+                      WhatsApp
+                    </Button>
+                  </Stack>
                 </CardContent>
               </Card>
             </Grid>

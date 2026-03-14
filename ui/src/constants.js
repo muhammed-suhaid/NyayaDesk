@@ -2,7 +2,8 @@ export const APP_CONFIG = {
   BRAND_NAME: 'NyayaDesk',
   FIRM_LEGAL_NAME: 'NyayaDesk',
   VERSION: '1.0.0',
-  SUPPORT_EMAIL: 'support@nyayadesk.com',
+  SUPPORT_EMAIL: 'suhaidshu@gmail.com',
+  SUPPORT_PHONE: '+919895757238',
 };
 
 export const UI_ACTIONS = {
