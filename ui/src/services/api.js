@@ -42,9 +42,11 @@ export const AdminApi = {
 };
 
 export const SuperAdminApi = {
+  summary: () => http.get('/superadmin/summary'),
   companies: () => http.get('/superadmin/companies'),
   company: (id) => http.get(`/superadmin/companies/${id}`),
   setCompanyStatus: (id, status) => http.put(`/superadmin/companies/${id}/status`, { status }),
+  downloadPayment: (companyId, paymentId) => http.get(`/superadmin/companies/${companyId}/payments/${paymentId}/download`, { responseType: 'blob' }),
 };
 
 export const CasesApi = {

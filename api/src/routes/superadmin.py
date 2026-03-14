@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 
 from src.db import db
 from src.models.advocate import Advocate
@@ -14,6 +14,51 @@ from src.utils.http import error_response, success_response
 
 
 superadmin_bp = Blueprint("superadmin", __name__)
+
+
+@superadmin_bp.get("/companies/<int:company_id>/payments/<int:payment_id>/download")
+@require_role("super_admin")
+def download_payment(company_id: int, payment_id: int):
+    company = Company.query.get(company_id)
+    if not company:
+        return error_response("Company not found", 404)
+
+    payment = Payment.query.filter_by(id=payment_id, company_id=company_id).first()
+    if not payment:
+        return error_response("Payment record not found", 404)
+
+    try:
+        from src.reports.invoice_report import generate_invoice_pdf
+        pdf_buffer = generate_invoice_pdf(payment.to_dict(), company.to_dict())
+        
+        filename = f"Invoice_INV_{payment.id:04d}.pdf"
+        
+        return send_file(
+            pdf_buffer,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        return error_response(f"PDF Error: {str(e)}", 500)
+
+
+@superadmin_bp.get("/summary")
+@require_role("super_admin")
+def get_summary():
+    total_companies = Company.query.count()
+    total_advocates = Advocate.query.count()
+    total_cases = Case.query.count()
+    total_users = User.query.count()
+    active_companies = Company.query.filter(Company.status == "active").count()
+
+    return {
+        "totalCompanies": total_companies,
+        "totalAdvocates": total_advocates,
+        "totalCases": total_cases,
+        "totalUsers": total_users,
+        "activeCompanies": active_companies,
+    }
 
 
 @superadmin_bp.get("/companies")
