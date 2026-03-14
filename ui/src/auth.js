@@ -3,8 +3,8 @@ import http from './services/api';
 const AUTH_KEY = 'nyayadesk_auth';
 
 export const DEMO_CREDENTIALS = {
-  superAdmin: { email: 'superadmin@nyayadesk.com', password: 'super123' },
-  admin: { email: 'admin@samplefirm.com', password: 'admin123' },
+  superAdmin: { email: 'suhaidshu@gmail.com', password: 'super123' },
+  admin: { email: 'muhammedsuhaid3@gmail.com', password: 'admin123' },
 };
 
 export function getAuth() {
