@@ -3,6 +3,7 @@ import {
   Alert, Button, Card, CardContent, Grid, Stack, TextField, Typography, Box, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, useTheme, alpha, Fade, Tooltip, Table, TableHead, TableBody, TableRow, TableCell, Avatar, LinearProgress
 } from '@mui/material';
 import { CheckCircle, Cancel, History, Pending, Description, PostAdd, Info } from '@mui/icons-material';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 import { getRole } from '../auth';
 import { LeaveApi } from '../services/api';
 import { UI_ACTIONS, LEGAL_TERMS, COMMON_FIELDS } from '../constants';
@@ -27,6 +28,9 @@ export default function LeaveRequestsPage() {
   const [openSubmit, setOpenSubmit] = useState(false);
   const [filter, setFilter] = useState('all');
 
+  // Confirmation state
+  const [updateConfirm, setUpdateConfirm] = useState({ open: false, id: null, status: '' });
+
   const load = async () => {
     setLoading(true);
     try { const res = await LeaveApi.list({}); setItems(res.data); } catch {} finally { setLoading(false); }
@@ -34,7 +38,14 @@ export default function LeaveRequestsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleUpdate = async (id, s) => { await LeaveApi.update(id, { status: s }); load(); };
+  const handleUpdate = async () => {
+    if (!updateConfirm.id) return;
+    try {
+      await LeaveApi.update(updateConfirm.id, { status: updateConfirm.status });
+      setUpdateConfirm({ open: false, id: null, status: '' });
+      load();
+    } catch {}
+  };
 
   const calculateDays = (s, e) => {
     if (!s || !e) return 0;
@@ -85,7 +96,26 @@ export default function LeaveRequestsPage() {
                     <TableCell><Typography variant="caption" sx={{maxWidth:150, display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{i.reason}</Typography></TableCell>
                     <TableCell align="center"><StatusChip status={i.status} /></TableCell>
                     {role==='admin'&&<TableCell align="right">
-                      {i.status==='pending' && <Stack direction="row" spacing={1}><Button size="small" color="success" onClick={()=>handleUpdate(i.id,'approved')} sx={{fontWeight:800, fontSize:'0.6rem'}}>Approve</Button><Button size="small" color="error" onClick={()=>handleUpdate(i.id,'rejected')} sx={{fontWeight:800, fontSize:'0.6rem'}}>Reject</Button></Stack>}
+                      {i.status==='pending' && (
+                        <Stack direction="row" spacing={1}>
+                          <Button 
+                            size="small" 
+                            color="success" 
+                            onClick={() => setUpdateConfirm({ open: true, id: i.id, status: 'approved' })} 
+                            sx={{fontWeight:800, fontSize:'0.6rem'}}
+                          >
+                            Approve
+                          </Button>
+                          <Button 
+                            size="small" 
+                            color="error" 
+                            onClick={() => setUpdateConfirm({ open: true, id: i.id, status: 'rejected' })} 
+                            sx={{fontWeight:800, fontSize:'0.6rem'}}
+                          >
+                            Reject
+                          </Button>
+                        </Stack>
+                      )}
                     </TableCell>}
                   </TableRow>
                 ))}
@@ -106,6 +136,16 @@ export default function LeaveRequestsPage() {
         </DialogContent>
         <DialogActions><Button onClick={() => setOpenSubmit(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" onClick={async ()=>{ await LeaveApi.submit(form); setOpenSubmit(false); load(); }} sx={{fontWeight:900}}>{UI_ACTIONS.APPLY}</Button></DialogActions>
       </Dialog>
+
+      <ConfirmationDialog 
+        open={updateConfirm.open}
+        onClose={() => setUpdateConfirm({ open: false, id: null, status: '' })}
+        onConfirm={handleUpdate}
+        title={updateConfirm.status === 'approved' ? 'Approve Leave?' : 'Reject Leave?'}
+        message={`Are you sure you want to ${updateConfirm.status} this leave request?`}
+        confirmText={updateConfirm.status === 'approved' ? 'Approve' : 'Reject'}
+        severity={updateConfirm.status === 'approved' ? 'info' : 'error'}
+      />
     </Box>
   );
 }

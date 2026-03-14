@@ -5,6 +5,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SearchIcon from '@mui/icons-material/Search';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { AdvocatesApi, AdminApi } from '../services/api';
 import { getRole } from '../auth';
@@ -21,6 +22,9 @@ export default function AdvocatesPage() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '', barCouncilNumber: '', role: 'Advocate', status: 'active' });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: '', message: '' });
+
+  // Confirmation state
+  const [removeConfirm, setRemoveConfirm] = useState({ open: false, id: null });
 
   const role = getRole();
   const isAdmin = role === 'admin';
@@ -57,6 +61,23 @@ export default function AdvocatesPage() {
     }
     setErrors({});
     setOpen(true);
+  };
+
+  const handleRemove = async () => {
+    if (!removeConfirm.id) return;
+    setStatus({ type: '', message: '' });
+    try {
+      await AdvocatesApi.remove(removeConfirm.id);
+      setRemoveConfirm({ open: false, id: null });
+      setStatus({ type: 'success', message: 'Staff member removed successfully.' });
+      load();
+    } catch (err) {
+      setStatus({ 
+        type: 'error', 
+        message: err.response?.data?.error || 'Failed to remove staff member. Ensure they have no assigned cases or records.' 
+      });
+      setRemoveConfirm({ open: false, id: null });
+    }
   };
 
   return (
@@ -108,9 +129,11 @@ export default function AdvocatesPage() {
                     {isAdmin && (
                       <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                         <IconButton size="small" color="primary" onClick={() => handleOpen(a)}><EditIcon sx={{fontSize:16}}/></IconButton>
-                        <IconButton size="small" color="error" onClick={async () => {
-                          if(window.confirm('Remove staff access?')) { await AdvocatesApi.remove(a.id); load(); }
-                        }}><DeleteOutlineIcon sx={{fontSize:16}}/></IconButton>
+                        {a.role !== 'Admin' && (
+                          <IconButton size="small" color="error" onClick={() => setRemoveConfirm({ open: true, id: a.id })}>
+                            <DeleteOutlineIcon sx={{fontSize:16}}/>
+                          </IconButton>
+                        )}
                       </Stack>
                     )}
                   </TableCell>
@@ -186,6 +209,15 @@ export default function AdvocatesPage() {
           }} sx={{ fontWeight: 900 }}>{UI_ACTIONS.SAVE}</Button>
         </DialogActions>
       </Dialog>
+
+      <ConfirmationDialog 
+        open={removeConfirm.open}
+        onClose={() => setRemoveConfirm({ open: false, id: null })}
+        onConfirm={handleRemove}
+        title="Remove Staff?"
+        message="This will permanently revoke all access for this team member. Continue?"
+        confirmText="Remove Access"
+      />
     </Box>
   );
 }

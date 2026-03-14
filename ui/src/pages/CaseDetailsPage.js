@@ -15,6 +15,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import DownloadIcon from '@mui/icons-material/Download';
 import LockIcon from '@mui/icons-material/Lock';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { CasesApi, AdvocatesApi, ClientsApi } from '../services/api';
@@ -71,6 +72,10 @@ export default function CaseDetailsPage() {
   const [file, setFile] = useState(null);
   const [docType, setDocType] = useState('Evidence');
   const [uploading, setUploading] = useState(false);
+
+  // Confirmation state
+  const [deleteDocConfirm, setDeleteDocConfirm] = useState({ open: false, id: null });
+  const [finalizeConfirm, setFinalizeConfirm] = useState(false);
 
   const id = Number(caseId);
 
@@ -164,11 +169,12 @@ export default function CaseDetailsPage() {
     } catch (e) { showMsg('Error', 'error'); }
   };
 
-  const handleDeleteDoc = async (docId) => {
-    if (!window.confirm('Delete?')) return;
+  const handleDeleteDoc = async () => {
+    if (!deleteDocConfirm.id) return;
     try {
-      await CasesApi.deleteDocument(id, docId);
+      await CasesApi.deleteDocument(id, deleteDocConfirm.id);
       showMsg('Deleted');
+      setDeleteDocConfirm({ open: false, id: null });
       load();
     } catch (e) { showMsg('Error', 'error'); }
   };
@@ -342,7 +348,11 @@ export default function CaseDetailsPage() {
                       </Box>
                       <Stack direction="row">
                         <IconButton size="small" onClick={() => handleDownload(d)}><DownloadIcon sx={{ fontSize: 16 }} /></IconButton>
-                        {!locked && isAdmin && <IconButton size="small" color="error" onClick={() => handleDeleteDoc(d.id)}><DeleteIcon sx={{ fontSize: 16 }} /></IconButton>}
+                        {!locked && isAdmin && (
+                          <IconButton size="small" color="error" onClick={() => setDeleteDocConfirm({ open: true, id: d.id })}>
+                            <DeleteIcon sx={{ fontSize: 16 }} />
+                          </IconButton>
+                        )}
                       </Stack>
                     </Box>
                   ))}
@@ -527,8 +537,30 @@ export default function CaseDetailsPage() {
             <TextField label="Outcome" multiline rows={2} size="small" fullWidth value={disposeForm.outcome || ''} onChange={e => setDisposeForm({...disposeForm, outcome: e.target.value})} />
           </Stack>
         </DialogContent>
-        <DialogActions><Button onClick={() => setDisposeOpen(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" color="success" onClick={handleFinalize}>Confirm</Button></DialogActions>
+        <DialogActions>
+          <Button onClick={() => setDisposeOpen(false)}>{UI_ACTIONS.CANCEL}</Button>
+          <Button variant="contained" color="success" onClick={() => setFinalizeConfirm(true)}>Confirm</Button>
+        </DialogActions>
       </Dialog>
+
+      <ConfirmationDialog 
+        open={deleteDocConfirm.open}
+        onClose={() => setDeleteDocConfirm({ open: false, id: null })}
+        onConfirm={handleDeleteDoc}
+        title="Delete Document?"
+        message="Are you sure you want to permanently delete this document?"
+        confirmText={UI_ACTIONS.DELETE}
+      />
+
+      <ConfirmationDialog 
+        open={finalizeConfirm}
+        onClose={() => setFinalizeConfirm(false)}
+        onConfirm={handleFinalize}
+        title="Finalize Case?"
+        message="This action will mark the case as closed/disposed and lock further edits. Proceed?"
+        confirmText="Finalize"
+        severity="warning"
+      />
 
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert severity={snackbar.severity} sx={{ borderRadius: 1 }}>{snackbar.message}</Alert>

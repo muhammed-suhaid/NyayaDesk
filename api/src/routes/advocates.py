@@ -96,6 +96,10 @@ def delete_advocate(advocate_id: int):
     if not a:
         return error_response("Advocate not found", 404)
 
+    # Protect Admin users from deletion
+    if a.role == "Admin":
+        return error_response(f"❌ Security Restriction: Staff members with the '{a.role}' role cannot be deleted. You can set their status to Inactive if they are no longer part of the firm.", 403)
+
     # Check if advocate has associated cases
     from src.models.case import Case
     case_count = Case.query.filter_by(assigned_advocate_id=advocate_id).count()

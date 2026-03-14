@@ -43,6 +43,7 @@ import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import DownloadIcon from '@mui/icons-material/Download';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { SuperAdminApi } from '../services/api';
 import { UI_ACTIONS, LEGAL_TERMS, COMMON_FIELDS } from '../constants';
@@ -77,6 +78,9 @@ export default function SuperAdminDashboard() {
   const [selectedDetails, setSelectedDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
+  // Status confirmation
+  const [statusConfirm, setStatusConfirm] = useState({ open: false, id: null, status: '' });
+
   const loadData = async () => {
     setLoading(true);
     setError('');
@@ -105,9 +109,11 @@ export default function SuperAdminDashboard() {
     );
   }, [companies, search]);
 
-  const toggleStatus = async (id, currentStatus) => {
+  const handleToggleStatus = async () => {
+    if (!statusConfirm.id) return;
     try {
-      await SuperAdminApi.setCompanyStatus(id, currentStatus === 'active' ? 'inactive' : 'active');
+      await SuperAdminApi.setCompanyStatus(statusConfirm.id, statusConfirm.status === 'active' ? 'inactive' : 'active');
+      setStatusConfirm({ open: false, id: null, status: '' });
       loadData();
     } catch (e) {
       console.error('Toggle status error:', e);
@@ -251,7 +257,7 @@ export default function SuperAdminDashboard() {
                             <Tooltip title={c.status === 'active' ? 'Deactivate Firm' : 'Activate Firm'}>
                               <IconButton 
                                 size="small"
-                                onClick={() => toggleStatus(c.id, c.status)}
+                                onClick={() => setStatusConfirm({ open: true, id: c.id, status: c.status })}
                                 color={c.status === 'active' ? 'error' : 'success'}
                               >
                                 {c.status === 'active' ? <ToggleOnIcon sx={{ fontSize: 24 }} /> : <ToggleOffIcon sx={{ fontSize: 24 }} />}
@@ -446,6 +452,16 @@ export default function SuperAdminDashboard() {
           <Button onClick={() => setDetailsOpen(false)} sx={{ fontWeight: 800 }}>{UI_ACTIONS.CLOSE}</Button>
         </DialogActions>
       </Dialog>
+
+      <ConfirmationDialog 
+        open={statusConfirm.open}
+        onClose={() => setStatusConfirm({ open: false, id: null, status: '' })}
+        onConfirm={handleToggleStatus}
+        title={statusConfirm.status === 'active' ? 'Deactivate Firm?' : 'Activate Firm?'}
+        message={`Are you sure you want to ${statusConfirm.status === 'active' ? 'suspend' : 'reinstate'} this firm's access to the platform?`}
+        confirmText={statusConfirm.status === 'active' ? 'Deactivate' : 'Activate'}
+        severity={statusConfirm.status === 'active' ? 'error' : 'info'}
+      />
     </Box>
   );
 }

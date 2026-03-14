@@ -181,6 +181,10 @@ def delete_user(user_id: int):
     if not user:
         return error_response("User not found", 404)
 
+    # Protect Admin users from deletion
+    if user.role == "admin":
+        return error_response(f"❌ Security Restriction: Users with the '{user.role}' role cannot be deleted. You can set their status to Inactive instead.", 403)
+
     # Check if advocate has associated cases
     if user.role == "advocate":
         from src.models.case import Case

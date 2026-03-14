@@ -5,11 +5,12 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SearchIcon from '@mui/icons-material/Search';
+import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { AdvocatesApi, CasesApi, ClientsApi } from '../services/api';
 import { getRole } from '../auth';
 import { isValidEmail, isValidPhoneOptional10Digit, required } from '../utils/validation';
-import { UI_ACTIONS, CASE_CATEGORIES, LEGAL_TERMS, FORM_METADATA, COMMON_FIELDS, DASHBOARD_METRICS } from '../constants';
+import { UI_ACTIONS, CASE_CATEGORIES, LEGAL_TERMS, FORM_METADATA, COMMON_FIELDS, DASHBOARD_METRICS, MESSAGES } from '../constants';
 
 export default function ClientsPage() {
   const theme = useTheme();
@@ -19,6 +20,9 @@ export default function ClientsPage() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', district: '' });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: '', message: '' });
+
+  // Confirmation state
+  const [confirm, setConfirm] = useState({ open: false, id: null });
 
   const role = getRole();
   const isAdmin = role === 'admin';
@@ -42,6 +46,23 @@ export default function ClientsPage() {
     if (!required(form.district)) next.district = 'District required';
     setErrors(next);
     return Object.keys(next).length === 0;
+  };
+
+  const handleRemove = async () => {
+    if (!confirm.id) return;
+    setStatus({ type: '', message: '' });
+    try {
+      await ClientsApi.remove(confirm.id);
+      setConfirm({ open: false, id: null });
+      setStatus({ type: 'success', message: `${LEGAL_TERMS.CLIENT} removed successfully.` });
+      load();
+    } catch (err) {
+      setStatus({ 
+        type: 'error', 
+        message: err.response?.data?.error || `Failed to remove ${LEGAL_TERMS.CLIENT}.` 
+      });
+      setConfirm({ open: false, id: null });
+    }
   };
 
   return (
@@ -90,9 +111,9 @@ export default function ClientsPage() {
                   <TableCell><Typography variant="caption">{c.district}</Typography></TableCell>
                   <TableCell><Typography variant="caption" sx={{ fontWeight: 900 }}>{(c.cases || []).length} cases</Typography></TableCell>
                   <TableCell align="right">
-                    {isAdmin && <IconButton size="small" color="error" onClick={async () => {
-                      if(window.confirm('Remove?')) { await ClientsApi.remove(c.id); load(); }
-                    }}><DeleteOutlineIcon sx={{fontSize:16}}/></IconButton>}
+                    {isAdmin && <IconButton size="small" color="error" onClick={() => setConfirm({ open: true, id: c.id })}>
+                      <DeleteOutlineIcon sx={{fontSize:16}}/>
+                    </IconButton>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -114,6 +135,15 @@ export default function ClientsPage() {
         </DialogContent>
         <DialogActions><Button onClick={() => setOpen(false)}>{UI_ACTIONS.CANCEL}</Button><Button variant="contained" onClick={async () => { if(validate()) { await ClientsApi.create(form); setOpen(false); load(); } }}>{UI_ACTIONS.ADD}</Button></DialogActions>
       </Dialog>
+
+      <ConfirmationDialog 
+        open={confirm.open}
+        onClose={() => setConfirm({ open: false, id: null })}
+        onConfirm={handleRemove}
+        title={`Remove ${LEGAL_TERMS.CLIENT}?`}
+        message={MESSAGES.DELETE_CONFIRM}
+        confirmText={UI_ACTIONS.DELETE}
+      />
     </Box>
   );
 }

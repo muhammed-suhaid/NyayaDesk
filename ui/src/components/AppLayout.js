@@ -37,6 +37,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
 import ProfileDialog from './ProfileDialog';
+import ConfirmationDialog from './ConfirmationDialog';
 import { NotificationsApi } from '../services/api';
 import { getCurrentUser, getRole, logout } from '../auth';
 import { APP_CONFIG, LEGAL_TERMS, USER_ROLES } from '../constants';
@@ -62,6 +63,7 @@ export default function AppLayout({ children }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -208,8 +210,7 @@ export default function AppLayout({ children }) {
             <MenuItem 
               onClick={() => {
                 setProfileAnchorEl(null);
-                logout();
-                navigate('/login', { replace: true });
+                setLogoutConfirm(true);
               }}
               sx={{ color: 'error.main', py: 0.7 }}
             >
@@ -246,6 +247,19 @@ export default function AppLayout({ children }) {
 
       <NotificationPanel open={notifOpen} onClose={() => { setNotifOpen(false); fetchUnread(); }} />
       <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
+      
+      <ConfirmationDialog 
+        open={logoutConfirm}
+        onClose={() => setLogoutConfirm(false)}
+        onConfirm={() => {
+          logout();
+          navigate('/login', { replace: true });
+        }}
+        title="Sign Out?"
+        message="Are you sure you want to end your current session?"
+        confirmText="Sign Out"
+        severity="info"
+      />
     </Box>
   );
 }
