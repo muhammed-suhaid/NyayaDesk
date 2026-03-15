@@ -3,7 +3,7 @@ import {
   Alert, Box, Button, Card, CardContent, Chip, Divider, Grid, Stack, TextField,
   Typography, Table, TableBody, TableCell, TableHead, TableRow, Snackbar,
   Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, InputLabel, FormControl,
-  IconButton, Tooltip, alpha, useTheme
+  IconButton, Tooltip, alpha, useTheme, CircularProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -15,10 +15,11 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import DownloadIcon from '@mui/icons-material/Download';
 import LockIcon from '@mui/icons-material/Lock';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import CloseIcon from '@mui/icons-material/Close';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { useNavigate, useParams } from 'react-router-dom';
-import { CasesApi, AdvocatesApi, ClientsApi } from '../services/api';
+import { CasesApi, AdvocatesApi, ClientsApi, AIApi } from '../services/api';
 import { getRole } from '../auth';
 import { UI_ACTIONS, LEGAL_TERMS, CASE_CATEGORIES } from '../constants';
 
@@ -53,6 +54,10 @@ export default function CaseDetailsPage() {
   const isAdmin = role === 'admin' || role === 'super_admin';
   const isAdvocate = role === 'advocate';
   const canEdit = isAdmin || isAdvocate;
+
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
+  const [aiPopupOpen, setAiPopupOpen] = useState(false);
 
   const [caseData, setCaseData] = useState(null);
   const [advocates, setAdvocates] = useState([]);
@@ -179,6 +184,42 @@ export default function CaseDetailsPage() {
     } catch (e) { showMsg('Error', 'error'); }
   };
 
+  const handleGenerateAISuggestions = async () => {
+    if (!caseData.title || !caseData.description) {
+      return showMsg('Case title and case description are required for AI analysis.', 'error');
+    }
+
+    setAiLoading(true);
+    setAiResponse(null);
+
+    const payload = {
+      title: caseData.title,
+      caseNumber: caseData.caseNumber,
+      court: caseData.courtName,
+      district: caseData.district,
+      caseType: caseData.caseType,
+      clientName: caseData.clients?.[0]?.name || 'N/A',
+      advocateName: caseData.assignedAdvocate?.name || 'N/A',
+      status: caseData.currentStatus,
+      filingDate: caseData.filingDate,
+      nextHearing: nextH ? new Date(nextH.hearingDate).toLocaleDateString() : 'N/A',
+      facts: caseData.description,
+      hearingNotes: (caseData.hearings || []).map(h => `${new Date(h.hearingDate).toLocaleDateString()}: ${h.notes}`).join('\n'),
+      updates: (caseData.updates || []).map(u => `${new Date(u.createdAt).toLocaleDateString()}: ${u.updateText}`).join('\n')
+    };
+
+    try {
+      const res = await AIApi.analyzeCase(payload);
+      setAiResponse(res.data.analysis);
+      setAiPopupOpen(true);
+      showMsg('AI Suggestions generated');
+    } catch (e) {
+      showMsg(e?.response?.data?.message || 'AI analysis is currently unavailable. Please try again later.', 'error');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 1.5, md: 3 } }}>
       <Stack spacing={2}>
@@ -272,7 +313,7 @@ export default function CaseDetailsPage() {
           </Grid>
 
           <Grid item xs={12} lg={4}>
-            <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none', height: '100%' }}>
+            <Card sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
               <CardContent sx={{ p: 2 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.55rem', mb: 1, display: 'block' }}>Case Status</Typography>
                 {locked ? (
@@ -290,6 +331,180 @@ export default function CaseDetailsPage() {
                 )}
               </CardContent>
             </Card>
+
+            <Card sx={{ mt: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+              <CardContent sx={{ p: 2 }}>
+                <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+                  <Box sx={{ p: 0.5, borderRadius: 1, bgcolor: 'primary.main', display: 'flex' }}>
+                    <DescriptionIcon sx={{ color: 'white', fontSize: 16 }} />
+                  </Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>AI Legal Assistant</Typography>
+                </Stack>
+                
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                  Generate legal strategy, arguments, and relevant laws using AI.
+                </Typography>
+
+                <Button 
+                  fullWidth 
+                  variant="outlined" 
+                  size="small" 
+                  onClick={handleGenerateAISuggestions}
+                  disabled={aiLoading || locked}
+                  sx={{ fontWeight: 800, textTransform: 'none' }}
+                >
+                  {aiLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : 'Generate Legal Suggestions'}
+                </Button>
+
+                {locked && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center', fontStyle: 'italic', fontSize: '0.65rem' }}>
+                    Suggestions are not available for closed cases.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+
+            <Dialog 
+              open={aiPopupOpen} 
+              onClose={() => setAiPopupOpen(false)} 
+              maxWidth="md" 
+              fullWidth
+              PaperProps={{
+                sx: { borderRadius: 2, overflow: 'hidden' }
+              }}
+            >
+              <DialogTitle sx={{ 
+                p: 3, 
+                background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+              }}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Box sx={{ 
+                    p: 1, 
+                    borderRadius: '50%', 
+                    bgcolor: 'rgba(255,255,255,0.2)', 
+                    display: 'flex',
+                    border: '1px solid rgba(255,255,255,0.3)'
+                  }}>
+                     <DescriptionIcon sx={{ color: 'white', fontSize: 24 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.2 }}>AI Legal Analysis</Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
+                      Powered by NyayaDesk AI Strategy Engine
+                    </Typography>
+                  </Box>
+                </Stack>
+                <IconButton onClick={() => setAiPopupOpen(false)} sx={{ color: 'white' }}>
+                  <CloseIcon />
+                </IconButton>
+              </DialogTitle>
+              <DialogContent sx={{ p: 0, bgcolor: '#f8fafc' }}>
+                <Box sx={{ p: 4 }}>
+                  {aiResponse?.split(/(\d\.\s[A-Za-z\s]+)/).filter(Boolean).map((part, index) => {
+                    const isHeader = /^\d\.\s/.test(part);
+                    
+                    if (isHeader) {
+                      return (
+                        <Typography 
+                          key={index} 
+                          variant="overline" 
+                          sx={{ 
+                            display: 'block', 
+                            mt: index === 0 ? 0 : 4, 
+                            mb: 1, 
+                            color: 'primary.main', 
+                            fontWeight: 900, 
+                            fontSize: '0.75rem',
+                            letterSpacing: 1.5,
+                            borderBottom: '2px solid',
+                            borderColor: alpha(theme.palette.primary.main, 0.1),
+                            pb: 0.5,
+                            width: 'fit-content'
+                          }}
+                        >
+                          {part.toUpperCase()}
+                        </Typography>
+                      );
+                    }
+
+                    return (part.trim() && (
+                      <Card key={index} sx={{ 
+                        p: 2.5, 
+                        borderRadius: 2, 
+                        border: '1px solid', 
+                        borderColor: 'divider',
+                        boxShadow: 'none',
+                        bgcolor: 'white',
+                        transition: 'transform 0.2s',
+                        '&:hover': { transform: 'translateY(-2px)', borderColor: theme.palette.primary.main }
+                      }}>
+                        <Typography variant="body2" sx={{ 
+                          whiteSpace: 'pre-wrap', 
+                          fontSize: '0.875rem', 
+                          color: '#334155', 
+                          lineHeight: 1.8,
+                          '& b, & strong': { fontWeight: 800, color: 'primary.dark' },
+                          '& ul, & li': { mt: 0.5 }
+                        }}>
+                          {part.trim()}
+                        </Typography>
+                      </Card>
+                    ));
+                  })}
+                </Box>
+              </DialogContent>
+              <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Button onClick={() => setAiPopupOpen(false)} sx={{ fontWeight: 800 }}>Close</Button>
+                <Button 
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  onClick={() => {
+                    const element = document.createElement("a");
+                    const file = new Blob([aiResponse], {type: 'text/plain'});
+                    element.href = URL.createObjectURL(file);
+                    element.download = `AI_Analysis_${caseData.caseNumber}.txt`;
+                    document.body.appendChild(element);
+                    element.click();
+                  }}
+                  sx={{ fontWeight: 800, mr: 1 }}
+                >
+                  .txt
+                </Button>
+                <Button 
+                  variant="outlined"
+                  startIcon={<PictureAsPdfIcon />}
+                  onClick={async () => {
+                    try {
+                      const res = await AIApi.downloadPdf({ analysis: aiResponse, caseNumber: caseData.caseNumber });
+                      const url = window.URL.createObjectURL(res.data);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `AI_Analysis_${caseData.caseNumber}.pdf`;
+                      a.click();
+                    } catch (e) { showMsg('PDF failed', 'error'); }
+                  }}
+                  sx={{ fontWeight: 800, mr: 'auto' }}
+                >
+                  .pdf
+                </Button>
+                <Button 
+                  variant="contained" 
+                  startIcon={<CheckCircleOutlineIcon />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(aiResponse);
+                    showMsg('Copied to clipboard');
+                  }}
+                  sx={{ fontWeight: 900 }}
+                >
+                  Copy Analysis
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Grid>
         </Grid>
 

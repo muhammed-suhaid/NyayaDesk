@@ -156,4 +156,9 @@ export const SubscriptionApi = {
   downloadInvoice: (invoiceId) => http.get(`/subscription/invoices/${invoiceId}/download`),
 };
 
+export const AIApi = {
+  analyzeCase: (payload) => http.post('/ai/case-analysis', payload),
+  downloadPdf: (payload) => http.post('/ai/download-pdf', payload, { responseType: 'blob' }),
+};
+
 export default http;

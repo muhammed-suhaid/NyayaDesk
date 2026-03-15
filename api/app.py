@@ -1,6 +1,16 @@
 from datetime import date, datetime
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
+print(f"DEBUG: Environment variables loaded from {env_path}")
+if os.environ.get("GOOGLE_API_KEY"):
+    print("DEBUG: GOOGLE_API_KEY is present")
+else:
+    print("DEBUG: GOOGLE_API_KEY is MISSING")
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -19,6 +29,7 @@ from src.routes.reports import reports_bp
 from src.routes.superadmin import superadmin_bp
 from src.routes.subscription import subscription_bp
 from src.routes.hearings import hearings_bp
+from src.routes.ai import ai_bp
 from src.services.seed_service import seed_if_needed
 from src.utils.settings import AppSettings
 
@@ -85,6 +96,7 @@ def create_app() -> Flask:
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
     app.register_blueprint(reports_bp, url_prefix="/api/reports")
     app.register_blueprint(hearings_bp, url_prefix="/api/hearings")
+    app.register_blueprint(ai_bp, url_prefix="/api/ai")
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
