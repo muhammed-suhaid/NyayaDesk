@@ -96,8 +96,10 @@ def legal_question():
     if not question:
         return jsonify({"error": "Please enter a question."}), 400
 
+    from flask import current_app
+    brand = current_app.config.get("BRAND_NAME", "CaseduleAI")
     prompt = f"""
-You are a specialized Legal AI for NyayaDesk, focusing strictly on Indian Law.
+You are a specialized Legal AI for {brand}, focusing strictly on Indian Law.
 
 RULES:
 1. ONLY answer questions related to Law, Statutes, Indian Penal Code (IPC), BNS, Court Procedures, or Legal Advice.

@@ -13,7 +13,7 @@ with app.app_context():
         exit(1)
     
     # 2. Check if admin exists
-    admin_email = "admin@nyayadesk.com"
+    admin_email = "admin@caseduleai.com"
     existing_user = User.query.filter_by(email=admin_email).first()
     
     if existing_user:

@@ -74,6 +74,7 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.database_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["UPLOAD_ROOT"] = str(settings.upload_root)
+    app.config["BRAND_NAME"] = settings.brand_name
 
     CORS(app)
 
@@ -107,7 +108,7 @@ def create_app() -> Flask:
     def index():
         return jsonify(
             {
-                "name": "NyayaDesk API",
+                "name": "API",
                 "status": "ok",
                 "server_time": datetime.utcnow().isoformat() + "Z",
                 "today": date.today().isoformat(),

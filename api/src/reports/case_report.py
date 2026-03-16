@@ -25,7 +25,9 @@ def generate_case_report_pdf(case_data):
         spaceAfter=30,
         alignment=1 # Center
     )
-    elements.append(Paragraph("NyayaDesk Case Report", title_style))
+    from flask import current_app
+    brand = current_app.config.get("BRAND_NAME", "CaseduleAI")
+    elements.append(Paragraph(f"{brand} Case Report", title_style))
     elements.append(Spacer(1, 0.2 * inch))
 
     # Case Overview

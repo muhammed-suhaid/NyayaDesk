@@ -92,6 +92,7 @@ export default function AppLayout({ children }) {
   };
 
   useEffect(() => {
+    document.title = APP_CONFIG.BRAND_NAME;
     fetchUnread();
     const t = setInterval(fetchUnread, 15000);
     return () => clearInterval(t);

@@ -19,7 +19,9 @@ def generate_invoice_pdf(payment_data, company_data):
     elements = []
 
     # Header
-    elements.append(Paragraph("<b>NyayaDesk</b>", title_style))
+    from flask import current_app
+    brand = current_app.config.get("BRAND_NAME", "CaseduleAI")
+    elements.append(Paragraph(f"<b>{brand}</b>", title_style))
     elements.append(Paragraph("SaaS Subscription Invoice", ParagraphStyle('Sub', parent=normal_style, alignment=1, fontSize=10, spaceAfter=30)))
     
     elements.append(HRFlowable(width="100%", thickness=1, color=colors.black, spaceAfter=20))

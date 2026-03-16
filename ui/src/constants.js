@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
-  BRAND_NAME: 'NyayaDesk',
-  FIRM_LEGAL_NAME: 'NyayaDesk',
+  BRAND_NAME: 'CaseduleAI',
+  FIRM_LEGAL_NAME: 'CaseduleAI',
   VERSION: '1.0.0',
   SUPPORT_EMAIL: 'suhaidshu@gmail.com',
   SUPPORT_PHONE: '+919895757238',

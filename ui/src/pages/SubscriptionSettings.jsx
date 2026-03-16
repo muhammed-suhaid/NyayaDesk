@@ -26,6 +26,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PrintIcon from '@mui/icons-material/Print';
 import { useNavigate } from 'react-router-dom';
 import { SubscriptionApi, AdminApi } from '../services/api';
+import { APP_CONFIG } from '../constants';
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Plan Colours
@@ -96,7 +98,7 @@ export default function SubscriptionSettings() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Invoice ${invoice.invoiceId} — NyayaDesk</title>
+        <title>Invoice ${invoice.invoiceId} — ${APP_CONFIG.BRAND_NAME}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #1f2937; font-size: 13px; line-height: 1.5; }
@@ -136,7 +138,7 @@ export default function SubscriptionSettings() {
       <body>
         <div class="header">
           <div class="logo-box">
-            <div class="logo">NyayaDesk<span>Legal Case Management Solutions</span></div>
+            <div class="logo">${APP_CONFIG.BRAND_NAME}<span>Legal Case Management Solutions</span></div>
           </div>
           <div class="invoice-meta">
             <h1>INVOICE</h1>
@@ -148,10 +150,11 @@ export default function SubscriptionSettings() {
         <div class="address-section">
           <div class="address-box">
             <h3>From</h3>
-            <strong>NyayaDesk Support</strong>
-            <p>Email: support@nyayadesk.com</p>
-            <p>Phone: +91 98765 43210</p>
-            <p>Web: www.nyayadesk.com</p>
+            <strong>${APP_CONFIG.BRAND_NAME} Support</strong>
+            <p>Email: ${APP_CONFIG.SUPPORT_EMAIL}</p>
+            <p>Phone: ${APP_CONFIG.SUPPORT_PHONE}</p>
+            <p>Web: www.${APP_CONFIG.BRAND_NAME.toLowerCase()}.com</p>
+
           </div>
           <div class="address-box">
             <h3>Bill To</h3>
@@ -174,7 +177,7 @@ export default function SubscriptionSettings() {
           <tbody>
             <tr>
               <td>
-                <div class="item-desc">NyayaDesk SaaS Subscription</div>
+                <div class="item-desc">${APP_CONFIG.BRAND_NAME} SaaS Subscription</div>
                 <div class="item-sub">One month access to legal case management tools, documents, and dashboard for ${company?.name || 'your firm'}.</div>
               </td>
               <td style="text-transform:capitalize">${invoice.plan}</td>
@@ -208,8 +211,9 @@ export default function SubscriptionSettings() {
         </div>
 
         <div class="footer">
-          <p>Thank you for choosing NyayaDesk. We appreciate your business!</p>
-          <p style="margin-top: 8px;">Support: +91 98765-43210 | support@nyayadesk.com | www.nyayadesk.com</p>
+          <p>Thank you for choosing ${APP_CONFIG.BRAND_NAME}. We appreciate your business!</p>
+          <p style="margin-top: 8px;">Support: ${APP_CONFIG.SUPPORT_PHONE} | ${APP_CONFIG.SUPPORT_EMAIL} | www.${APP_CONFIG.BRAND_NAME.toLowerCase()}.com</p>
+
           <p style="margin-top: 8px; font-size: 10px; color: #d1d5db;">This is a computer-generated invoice and does not require a physical signature.</p>
         </div>
       </body>

@@ -1,0 +1,191 @@
+# NyayaDesk – Legal Case Management System
+## Complete Project Documentation for Presentation
+
+---
+
+### 1. Project Title
+**NyayaDesk – Legal Case Management System**
+*A modern, AI-integrated digital solution for law firms and legal practitioners.*
+
+---
+
+### 2. Abstract
+Legal case management has traditionally relied on manual record-keeping, leading to data silos, document misplacement, and delayed proceedings. **NyayaDesk** is a comprehensive Legal Case Management System (LCMS) designed to streamline law firm operations. By centralizing case details, client information, advocate tasks, and hearing schedules, the system ensures high organizational efficiency. A standout feature of NyayaDesk is its integration with **Google Gemini AI**, which provides intelligent case analysis and specialized legal assistance focused on Indian Law. This project bridge the gap between traditional legal practice and modern technology.
+
+---
+
+### 3. Introduction
+**Background of Legal Case Management:**
+The legal profession involves managing vast amounts of data, including case files, hearing dates, client records, and legal research. Traditionally, this was done via physical registers and folders.
+
+**Problems Faced Without Digital Systems:**
+*   **Difficulty in Tracking:** Searching for case history or upcoming hearing dates is time-consuming.
+*   **Document Clutter:** Physical documents are difficult to organize, search, and store securely.
+*   **Communication Gaps:** Poor coordination between senior advocates, juniors, and clients regarding case status.
+*   **Human Error:** Missed hearing dates or deadlines can lead to severe legal consequences.
+
+**Importance of Case Management Software:**
+Digital systems like NyayaDesk provide a single source of truth. They automate repetitive tasks, ensure data integrity, and offer analytical insights (AI-powered) that were previously impossible with manual systems.
+
+---
+
+### 4. Objectives of the Project
+The primary goal is to provide a unified platform for law firms to manage their entire lifecycle efficiently. Specific objectives include:
+*   **Centralized Management:** Efficiently manage Advocates, Clients, and Cases under one roof.
+*   **Proactive Tracking:** Track hearing dates, case updates, and document history in real-time.
+*   **Enhanced Document Organization:** Digital storage and management of case-related files.
+*   **Operational Control:** Attendance and leave tracking for administrative management of law firm staff.
+*   **AI-Driven Intelligence:** Provide AI-powered legal analysis and a specialized legal assistant for research.
+
+---
+
+### 5. Scope of the System
+**Where it can be used:**
+*   **Law Firms:** Multi-advocate firms requiring collaborative case management.
+*   **Individual Practitioners:** Independent lawyers needing a digital office assistant.
+*   **Legal Departments:** Corporate legal wings for internal case tracking.
+
+**Limitations:**
+*   Currently localized database (SQLite) for direct deployments; requires migration for massive-scale cloud setups.
+*   Initial focus is primarily on Indian legal procedures and statutes.
+
+---
+
+### 6. Technology Stack
+**Frontend (Client Side):**
+*   **React:** For building a dynamic and responsive Single Page Application (SPA).
+*   **Material UI (MUI):** For a clean, professional, and accessible user interface components.
+*   **React Router:** Handles seamless navigation across multiple pages.
+*   **Axios:** Manages robust API communication with the backend.
+*   **Recharts:** Used for data visualization in reports and analytics.
+
+**Backend (Server Side):**
+*   **Python (Flask):** A lightweight yet powerful REST API framework.
+*   **Flask-SQLAlchemy:** ORM (Object Relational Mapper) for database interactions.
+*   **ReportLab:** For generating professional PDF reports and invoices.
+
+**Database:**
+*   **SQLite:** A serverless, self-contained SQL database engine ideal for local law firm environments.
+
+**AI Integration:**
+*   **Google Gemini AI:** Utilizes state-of-the-art Generative AI for case summarization and legal consultations.
+
+---
+
+### 7. System Architecture
+The system follows a **Client-Server Architecture**:
+
+1.  **Frontend (React):** Captures user input and displays data. It sends HTTP requests (JSON) via Axios.
+2.  **Backend (Flask):** The logic layer. It receives requests, validates authentication (JWT/RBAC), and interacts with the DB or AI service.
+3.  **Database (SQLite):** Stores persistent data such as user credentials, case facts, and hearing logs.
+4.  **AI Service (Gemini):** The backend communicates with Google's Gemini API for processing legal logic and returning analysis.
+
+**Data Flow:**
+User Input → React Component → API Endpoint → Flask Route → SQLAlchemy Model → Database → Response back to UI.
+
+---
+
+### 8. Modules of the System
+*   **Authentication Module:** Secure login system with Role-Based Access Control (RBAC) ensuring users only see what they are authorized to.
+*   **Super Admin Module:** System-wide management, including managing different law firm "Companies" and billing.
+*   **Admin Module:** Firm-level control; managing the roster of advocates and firm-wide configurations.
+*   **Case Management Module:** The core module for creating, editing, and tracking the lifecycle of legal cases.
+*   **Client Management Module:** Maintains a directory of clients, their contact details, and their associated cases.
+*   **Advocate Management Module:** Tracks employee details, expertise, and assigned workloads.
+*   **Attendance & Leave Module:** HR functionality to track staff presence and manage time-off requests.
+*   **Document Management Module:** Securely uploads and organizes case-specific legal documents and evidence.
+*   **Notification Module:** System alerts for upcoming hearings, task deadlines, and case updates.
+*   **Reports Module:** Generates analytics on case distributions, success rates, and staff performance.
+
+---
+
+### 9. AI Features
+*   **AI Case Analysis:** Advocates input case facts and titles. The AI analyzes this data to suggest:
+    *   Legal summaries and key arguments.
+    *   Relevant Indian laws and statutes.
+    *   Evidence strategies and potential line of questioning.
+*   **AI Legal Assistant:** A specialized chat interface where advocates can ask complex questions about Indian Law (IPC, BNS, etc.) and receive instant, structured explanations.
+
+---
+
+### 10. Database Design
+**Main Database Tables:**
+*   **Users:** Stores login credentials, roles (Super Admin, Admin, Advocate), and contact info.
+*   **Companies:** Stores information about the law firms using the system.
+*   **Advocates:** Profiles of legal professionals linked to a company.
+*   **Clients:** Details of individuals or entities seeking legal representation.
+*   **Cases:** Core table storing Case No, Court, Facts, and Status.
+*   **Hearings:** Logs of every court appearance date and associated notes.
+*   **CaseUpdates:** History of changes and milestones in a case.
+*   **Documents:** Meta-data and file paths for uploaded case files.
+*   **Attendance & LeaveRequests:** Records for staff administrative management.
+*   **Payments:** Tracking billing and financial transactions.
+
+**Relationships:**
+*   Each **Case** belongs to one **Company** and is linked to multiple **Clients** and **Advocates**.
+*   **Hearings** and **Documents** are children of a specific **Case**.
+
+---
+
+### 11. API Endpoints
+*   **Auth APIs:** `/api/auth/login`, `/api/auth/register` (handles session security).
+*   **Case APIs:** `/api/cases/` (CRUD operations for legal cases).
+*   **AI APIs:** `/api/ai/case-analysis` (Gemini analysis) and `/api/ai/legal-question` (Q&A).
+*   **Reports APIs:** `/api/reports/` (Statistics and PDF generation).
+*   **HR APIs:** `/api/attendance/` and `/api/leave-requests/`.
+
+---
+
+### 12. User Roles
+*   **Super Admin:** The system owner. Can manage all law firms (companies), view global summary, and handle billing.
+*   **Admin (Firm Owner):** Can manage advocates and clients within their firm, view firm reports, and configure firm settings.
+*   **Advocate (Staff):** Can manage their assigned cases, upload documents, track their own hearings, and use AI features for research.
+
+---
+
+### 13. User Interface
+*   **Dashboard:** High-level overview of active cases, upcoming hearings, and firm stats.
+*   **Cases Page:** Categorized list (Active/Closed) with powerful search filters.
+*   **Case Details:** A 360-degree view of a case including facts, documents, hearings, and updates.
+*   **AI Assistant Page:** A clean, chat-focused interface for legal research and analysis.
+*   **Client/Advocate Directories:** User-friendly management of contacts.
+*   **Reports Page:** Visual charts and downloadable CSV/PDF reports.
+
+---
+
+### 14. Security Features
+*   **RBAC (Role-Based Access Control):** Strict isolation of data between different law firms and user levels.
+*   **Input Validation:** Prevention of SQL injection and malicious script uploads.
+*   **API Security:** All endpoints are protected via authentication guards.
+*   **Error Handling:** Graceful failure management to ensure system stability even during network issues.
+
+---
+
+### 15. Advantages of the System
+*   **Efficiency:** Drastically reduces the time spent on administrative data entry.
+*   **Accuracy:** Real-time reminders for hearing dates minimize the risk of defaults.
+*   **Intelligence:** AI assisted research provides a competitive edge to advocates.
+*   **Organization:** Transition from paper-based file heaps to a structured digital library.
+
+---
+
+### 16. Limitations
+*   **Connectivity:** AI features require an active internet connection to communicate with Gemini.
+*   **Storage:** Large document uploads depend on the server’s local storage capacity.
+*   **Jurisdiction:** Current templates and AI prompts are optimized for Indian Law.
+
+---
+
+### 17. Future Enhancements
+*   **Mobile Application:** iOS/Android versions for advocates to access case files in court.
+*   **Court API Integration:** Automatic syncing of case statuses directly from court websites (e-Courts).
+*   **Cloud Deployment:** Migration to AWS/Azure for high-availability and global access.
+*   **Voice-to-Text:** AI transcription of court proceedings directly into the case notes.
+
+---
+
+### 18. Conclusion
+**NyayaDesk** represents the future of legal practice management. By combining a robust administrative backbone with cutting-edge AI capabilities, it empowers law firms to provide better legal services while reducing operational overhead. It is not just a digital register; it is an intelligent partner for legal professionals.
+
+---
+**End of Documentation**
