@@ -16,6 +16,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 import LockIcon from '@mui/icons-material/Lock';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CloseIcon from '@mui/icons-material/Close';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ConfirmationDialog from '../components/ConfirmationDialog';
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -370,98 +372,101 @@ export default function CaseDetailsPage() {
               maxWidth="md" 
               fullWidth
               PaperProps={{
-                sx: { borderRadius: 2, overflow: 'hidden' }
+                  sx: { borderRadius: 3, overflow: 'hidden' }
               }}
             >
-              <DialogTitle sx={{ 
-                p: 3, 
-                background: `linear-gradient(45deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                color: 'white',
+              <Box sx={{ 
+                p: 2.5, 
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                alignItems: 'center',
+                color: 'white'
               }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Box sx={{ 
-                    p: 1, 
-                    borderRadius: '50%', 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    display: 'flex',
-                    border: '1px solid rgba(255,255,255,0.3)'
-                  }}>
-                     <DescriptionIcon sx={{ color: 'white', fontSize: 24 }} />
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 0.8, borderRadius: 2, display: 'flex' }}>
+                    <AutoAwesomeIcon sx={{ color: 'white', fontSize: 20 }} />
                   </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.2 }}>AI Legal Analysis</Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-                      Powered by NyayaDesk AI Strategy Engine
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.2 }}>
+                      AI Legal Intelligence
+                    </Typography>
+                    <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600 }}>
+                      Comprehensive Case Analysis
                     </Typography>
                   </Box>
                 </Stack>
-                <IconButton onClick={() => setAiPopupOpen(false)} sx={{ color: 'white' }}>
-                  <CloseIcon />
+                <IconButton onClick={() => setAiPopupOpen(false)} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.1)', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+                  <CloseIcon sx={{ fontSize: 20 }} />
                 </IconButton>
-              </DialogTitle>
-              <DialogContent sx={{ p: 0, bgcolor: '#f8fafc' }}>
-                <Box sx={{ p: 4 }}>
-                  {aiResponse?.split(/(\d\.\s[A-Za-z\s]+)/).filter(Boolean).map((part, index) => {
-                    const isHeader = /^\d\.\s/.test(part);
-                    
-                    if (isHeader) {
-                      return (
-                        <Typography 
-                          key={index} 
-                          variant="overline" 
-                          sx={{ 
-                            display: 'block', 
-                            mt: index === 0 ? 0 : 4, 
-                            mb: 1, 
-                            color: 'primary.main', 
-                            fontWeight: 900, 
-                            fontSize: '0.75rem',
-                            letterSpacing: 1.5,
-                            borderBottom: '2px solid',
-                            borderColor: alpha(theme.palette.primary.main, 0.1),
-                            pb: 0.5,
-                            width: 'fit-content'
-                          }}
-                        >
-                          {part.toUpperCase()}
-                        </Typography>
-                      );
-                    }
+              </Box>
 
-                    return (part.trim() && (
-                      <Card key={index} sx={{ 
-                        p: 2.5, 
-                        borderRadius: 2, 
-                        border: '1px solid', 
-                        borderColor: 'divider',
-                        boxShadow: 'none',
-                        bgcolor: 'white',
-                        transition: 'transform 0.2s',
-                        '&:hover': { transform: 'translateY(-2px)', borderColor: theme.palette.primary.main }
-                      }}>
-                        <Typography variant="body2" sx={{ 
-                          whiteSpace: 'pre-wrap', 
-                          fontSize: '0.875rem', 
-                          color: '#334155', 
-                          lineHeight: 1.8,
-                          '& b, & strong': { fontWeight: 800, color: 'primary.dark' },
-                          '& ul, & li': { mt: 0.5 }
-                        }}>
-                          {part.trim()}
-                        </Typography>
-                      </Card>
-                    ));
-                  })}
+              <DialogContent sx={{ p: 0, bgcolor: 'white' }}>
+                <Box sx={{ p: { xs: 3, md: 5 } }}>
+                    {aiResponse?.split('\n').map((line, i) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return <Box key={i} sx={{ height: 16 }} />;
+
+                        // Handle bullet points
+                        const isBullet = trimmed.startsWith('* ') || trimmed.startsWith('• ');
+                        const content = isBullet ? trimmed.substring(2) : trimmed;
+
+                        // Handle bolding **text**
+                        const parts = content.split(/(\*\*.*?\*\*)/g);
+                        const formattedContent = parts.map((part, j) => {
+                            if (part.startsWith('**') && part.endsWith('**')) {
+                                return <strong key={j}>{part.slice(2, -2)}</strong>;
+                            }
+                            return part;
+                        });
+
+                        return (
+                            <Box key={i} sx={{ 
+                                display: 'flex', 
+                                mb: 1.5,
+                                pl: isBullet ? 2 : 0,
+                                position: 'relative'
+                            }}>
+                                {isBullet && (
+                                    <Box sx={{ 
+                                        width: 6, 
+                                        height: 6, 
+                                        borderRadius: '50%', 
+                                        bgcolor: 'primary.main', 
+                                        position: 'absolute',
+                                        left: 0,
+                                        top: 10
+                                    }} />
+                                )}
+                                <Typography variant="body1" sx={{ 
+                                    fontSize: '1rem', 
+                                    color: '#334155', 
+                                    lineHeight: 1.8,
+                                    '& strong': { 
+                                        fontWeight: 800, 
+                                        color: 'primary.main',
+                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                        px: 0.5,
+                                        borderRadius: 0.5
+                                    }
+                                }}>
+                                    {formattedContent}
+                                </Typography>
+                            </Box>
+                        );
+                    })}
+                </Box>
+                <Box sx={{ p: 2, bgcolor: '#f8fafc', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontStyle: 'italic' }}>
+                        Note: This AI-generated report is for reference. Word Count: {aiResponse?.trim().split(/\s+/).length || 0} words.
+                    </Typography>
                 </Box>
               </DialogContent>
-              <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Button onClick={() => setAiPopupOpen(false)} sx={{ fontWeight: 800 }}>Close</Button>
+
+              <DialogActions sx={{ p: 2, bgcolor: '#f8fafc', borderTop: '1px solid', borderColor: 'divider' }}>
                 <Button 
                   variant="outlined"
+                  size="small"
                   startIcon={<DownloadIcon />}
                   onClick={() => {
                     const element = document.createElement("a");
@@ -470,13 +475,15 @@ export default function CaseDetailsPage() {
                     element.download = `AI_Analysis_${caseData.caseNumber}.txt`;
                     document.body.appendChild(element);
                     element.click();
+                    showMsg('Downloading .txt');
                   }}
-                  sx={{ fontWeight: 800, mr: 1 }}
+                  sx={{ borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
                 >
                   .txt
                 </Button>
                 <Button 
                   variant="outlined"
+                  size="small"
                   startIcon={<PictureAsPdfIcon />}
                   onClick={async () => {
                     try {
@@ -486,23 +493,28 @@ export default function CaseDetailsPage() {
                       a.href = url;
                       a.download = `AI_Analysis_${caseData.caseNumber}.pdf`;
                       a.click();
-                    } catch (e) { showMsg('PDF failed', 'error'); }
+                      showMsg('Downloading .pdf');
+                    } catch (e) { showMsg('PDF generation failed', 'error'); }
                   }}
-                  sx={{ fontWeight: 800, mr: 'auto' }}
+                  sx={{ borderRadius: 2, fontWeight: 700, textTransform: 'none', mr: 'auto' }}
                 >
                   .pdf
                 </Button>
-                <Button 
-                  variant="contained" 
-                  startIcon={<CheckCircleOutlineIcon />}
-                  onClick={() => {
-                    navigator.clipboard.writeText(aiResponse);
-                    showMsg('Copied to clipboard');
-                  }}
-                  sx={{ fontWeight: 900 }}
-                >
-                  Copy Analysis
-                </Button>
+                
+                <Tooltip title="Copy to clipboard">
+                    <Button 
+                    variant="contained" 
+                    size="small"
+                    startIcon={<ContentCopyIcon />}
+                    onClick={() => {
+                        navigator.clipboard.writeText(aiResponse);
+                        showMsg('Copied to clipboard');
+                    }}
+                    sx={{ borderRadius: 2, fontWeight: 900, textTransform: 'none', px: 3 }}
+                    >
+                    Copy Report
+                    </Button>
+                </Tooltip>
               </DialogActions>
             </Dialog>
           </Grid>

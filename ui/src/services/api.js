@@ -158,6 +158,7 @@ export const SubscriptionApi = {
 
 export const AIApi = {
   analyzeCase: (payload) => http.post('/ai/case-analysis', payload),
+  askQuestion: (payload) => http.post('/ai/legal-question', payload),
   downloadPdf: (payload) => http.post('/ai/download-pdf', payload, { responseType: 'blob' }),
 };
 

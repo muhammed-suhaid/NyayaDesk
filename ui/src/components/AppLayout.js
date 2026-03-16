@@ -33,6 +33,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import PersonIcon from '@mui/icons-material/Person';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import NotificationPanel from './NotificationPanel';
@@ -52,6 +53,7 @@ const navItems = [
   { label: LEGAL_TERMS.ATTENDANCE, path: '/attendance', icon: <EventAvailableIcon />, roles: ['admin', 'advocate'] },
   { label: LEGAL_TERMS.LEAVE, path: '/leave', icon: <AssignmentTurnedInIcon />, roles: ['admin', 'advocate'] },
   { label: LEGAL_TERMS.REPORTS, path: '/reports', icon: <AssessmentIcon />, roles: ['admin', 'advocate'] },
+  { label: 'AI Assistant', path: '/ai-assistant', icon: <AutoAwesomeIcon />, roles: ['admin', 'advocate'] },
   { label: LEGAL_TERMS.SETTINGS, path: '/settings', icon: <SettingsIcon />, roles: ['admin'] },
   { label: 'Admin', path: '/superadmin', icon: <CorporateFareIcon />, roles: ['super_admin'] },
 ];

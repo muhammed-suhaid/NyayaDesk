@@ -17,6 +17,7 @@ import LeaveRequestsPage from './pages/LeaveRequestsPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import PaymentPage from './pages/PaymentPage';
+import AIAssistantPage from './pages/AIAssistantPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import { getRole } from './auth';
 
@@ -46,6 +47,7 @@ export default function App() {
                   <Route path="/attendance" element={<AttendancePage />} />
                   <Route path="/leave" element={<LeaveRequestsPage />} />
                   <Route path="/reports" element={<ReportsPage />} />
+                  <Route path="/ai-assistant" element={<AIAssistantPage />} />
                   <Route 
                     path="/settings" 
                     element={
